@@ -1,4 +1,5 @@
 import type { Context, Next } from 'koa';
+import type { ErrorBody } from '../types/api.d.ts';
 
 /**
  * 统一响应格式中间件
@@ -38,27 +39,30 @@ const responseMiddleware = async (ctx: Context, next: Next) => {
         data: ctx.body ?? null,
       };
     } else if (String(code).startsWith('4') || String(code).startsWith('5')) {
+      const body = ctx.body as ErrorBody | undefined;
       ctx.body = {
         success: false,
         code,
-        msg: (ctx.body as any)?.msg ?? '',
-        detail: (ctx.body as any)?.detail || null,
+        msg: body?.msg ?? '',
+        detail: body?.detail || null,
       };
     } else {
+      const body = ctx.body as ErrorBody | undefined;
       ctx.body = {
         success: false,
         code: 500,
-        msg: (ctx.body as any)?.msg || 'Internal Server Error',
-        detail: (ctx.body as any)?.detail || null,
+        msg: body?.msg || 'Internal Server Error',
+        detail: body?.detail || null,
       };
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const error = err as Error & { detail?: string };
     ctx.status = 500;
     ctx.body = {
       success: false,
       code: 500,
-      msg: err.message || 'Internal Server Error',
-      detail: err.detail || null,
+      msg: error.message || 'Internal Server Error',
+      detail: error.detail || null,
     };
   }
 };

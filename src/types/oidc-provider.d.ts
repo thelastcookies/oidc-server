@@ -40,9 +40,12 @@ declare module 'oidc-provider' {
 
   class Provider {
     constructor(issuer: string, configuration?: Configuration);
-    app: any;
+    context: any;
+    silent: boolean;
     callback(): any;
     use(middleware: any): Provider;
+    listen(port: number | string, callback?: () => void): any;
+    on(event: string, handler: (...args: any[]) => void): Provider;
     interactionDetails(req: any, res: any): Promise<any>;
     interactionFinished(req: any, res: any, result: any, options?: { mergeWithLastSubmission?: boolean }): Promise<void>;
     interactionResult(req: any, res: any, result: any, options?: { mergeWithLastSubmission?: boolean }): Promise<string>;

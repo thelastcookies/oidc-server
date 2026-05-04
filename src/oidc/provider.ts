@@ -7,24 +7,24 @@
  */
 import { generateKeyPairSync } from 'node:crypto';
 import Provider from 'oidc-provider';
+import type { Context, Next } from 'koa';
 import PrismaAdapter from './adapter.ts';
-import configuration from './config.ts';
+import configuration, { OIDC_ISSUER } from './config.ts';
 import prisma from '../prisma.ts';
-
-const OIDC_ISSUER = process.env.OIDC_ISSUER || 'http://localhost:8190';
+import type { JwkKey } from '../types/oidc.d.ts';
 
 /**
  * 生成 RSA 密钥对并导出为 JWK 格式
  *
- * JWK（JSON Web Key）的好处是可以通过 HTTP 端点（/oidc/jwks）分发公钥，
+ * JWK（JSON Web Key）的好处是可以通过 HTTP 端点（/jwks）分发公钥，
  * 子系统无需预先配置密钥，启动时从 JWKS 端点获取即可。
  */
-const generateKeys = () => {
+const generateKeys = (): { kid: string; jwk: JwkKey } => {
   const { publicKey, privateKey } = generateKeyPairSync('rsa', {
     modulusLength: 2048,  // RSA 2048 位，安全强度足够
   });
 
-  const privateJwk = privateKey.export({ format: 'jwk' }) as Record<string, any>;
+  const privateJwk = privateKey.export({ format: 'jwk' }) as unknown as JwkKey;
   const kid = `key-${Date.now()}`;  // 密钥 ID，用于 JWKS 端点匹配密钥
   privateJwk.kid = kid;
   privateJwk.use = 'sig';     // 用途：签名
@@ -44,7 +44,7 @@ const loadOrGenerateKeys = async () => {
 
   if (existingKeys.length > 0) {
     return {
-      keys: existingKeys.map((k) => JSON.parse(k.data)),
+      keys: existingKeys.map((k) => JSON.parse(k.data) as JwkKey),
     };
   }
 
@@ -70,22 +70,21 @@ const loadOrGenerateKeys = async () => {
 const initProvider = async () => {
   const jwks = await loadOrGenerateKeys();
 
-  const config: Record<string, any> = {
+  const provider = new Provider(OIDC_ISSUER, {
     ...configuration,
     adapter: PrismaAdapter,  // 用 Prisma 适配器替换默认的内存存储
     jwks,                    // RSA 签名密钥，用于签发和验证 JWT
-  };
-
-  const provider = new Provider(OIDC_ISSUER, config);
+  });
 
   // 全局错误处理：捕获 oidc-provider 内部未处理的异常
-  provider.use(async (ctx: any, next: any) => {
+  provider.use(async (ctx: Context, next: Next) => {
     try {
       await next();
-    } catch (err: any) {
-      console.error('OIDC Provider Error:', err);
-      ctx.status = err.status || 500;
-      ctx.body = { error: err.error || 'server_error', message: err.message };
+    } catch (err: unknown) {
+      const error = err as Error & { status?: number; error?: string };
+      console.error('OIDC Provider Error:', error);
+      ctx.status = error.status || 500;
+      ctx.body = { error: error.error || 'server_error', message: error.message };
     }
   });
 

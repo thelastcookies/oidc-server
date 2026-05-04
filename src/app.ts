@@ -22,35 +22,30 @@ const PORT = process.env.PORT || 3000;
  * 请求处理流程：
  * - OIDC 路由（/auth、/token、/me、/jwks 等）：
  *   Provider 的内部路由器直接处理，不经过我们的中间件
- * - 自定义路由（/sso/oidc/interaction/*、/sso/oidc/client/* 等）：
+ * - 自定义路由（/oidc/interaction/* 等）：
  *   Provider 的路由器不匹配，调用 next()，我们的中间件接管
  */
 const start = async () => {
   const provider = await initProvider();
 
-  // 将 provider 实例存入 app context，供 controller 通过 ctx.app.context.oidc 访问
-  provider.app.context.oidc = provider;
+  // 将 provider 实例存入 app context，供 controller 通过 ctx.oidc 访问
+  provider.context.oidc = provider;
 
   // 自定义中间件：添加在 Provider 内部中间件之后，仅处理非 OIDC 路由
-  provider.app.use(responseMiddleware);
-  provider.app.use(loggerMiddleware);
-  provider.app.use(cors());
-  provider.app.use(bodyParser());
-  provider.app.use(router.routes()).use(router.allowedMethods());
+  provider.use(responseMiddleware);
+  provider.use(loggerMiddleware);
+  provider.use(cors());
+  provider.use(bodyParser());
+  provider.use(router.routes()).use(router.allowedMethods());
 
   // 屏蔽默认错误输出
-  provider.app.silent = true;
-  // 自定义错误处理
-  provider.app.on('error', (err: any) => {
-    if (err.code === 'ECONNRESET' || err.code === 'EPIPE') {
-      return;
-    }
-    console.error('Server error', err);
-  });
+  provider.silent = true;
 
-  provider.app.listen(PORT, () => console.log(`
-🚀 Server ready at: https://${ipAddr}:${PORT}
-📖 OIDC Discovery: https://${ipAddr}:${PORT}/.well-known/openid-configuration`));
+  provider.listen(PORT, () => console.log(`
+🚀 Server ready at:
+   - Local:   http://localhost:${PORT}
+   - Network: http://${ipAddr}:${PORT}
+📖 OIDC Discovery: http://localhost:${PORT}/.well-known/openid-configuration`));
 };
 
 start().catch((err) => {

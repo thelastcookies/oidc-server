@@ -4,8 +4,9 @@
  * 定义 SSO 认证中心的行为规则，相当于"政策"文档。
  * 包括：支持的权限范围、用户声明、交互流程、Cookie 策略、令牌有效期等。
  */
-import prisma from '../prisma.ts';
+import type { Context } from 'koa';
 import type { Configuration } from 'oidc-provider';
+import prisma from '../prisma.ts';
 
 const OIDC_ISSUER = process.env.OIDC_ISSUER || 'http://localhost:8190';
 
@@ -36,11 +37,11 @@ const configuration: Configuration = {
    * interaction.uid 是 oidc-provider 生成的临时会话 ID，
    * 用于关联"谁在请求授权"和"登录结果"。
    *
-   * 流程：子系统 → /oidc/auth → oidc-provider 发现未登录 → 重定向到此 URL
+   * 流程：子系统 → /auth → oidc-provider 发现未登录 → 重定向到此 URL
    */
   interactions: {
-    url: (_ctx: any, interaction: any) => {
-      return `/sso/oidc/interaction/${interaction.uid}`;
+    url: (_ctx: Context, interaction: { uid: string }) => {
+      return `/oidc/interaction/${interaction.uid}`;
     },
   },
 
@@ -67,9 +68,9 @@ const configuration: Configuration = {
    * oidc-provider 通过 sub（用户 ID）查找用户信息。
    * 当需要生成 ID Token 或响应 UserInfo 请求时，调用此函数获取用户 claims。
    *
-   * claims() 的返回值会写入 ID Token 的 payload 和 /oidc/me 的响应体
+   * claims() 的返回值会写入 ID Token 的 payload 和 /me 的响应体
    */
-  findAccount: async (_ctx: any, id: string) => {
+  findAccount: async (_ctx: Context, id: string) => {
     const user = await prisma.user.findUnique({ where: { id: parseInt(id) } });
     if (!user) return undefined;
 
@@ -88,21 +89,21 @@ const configuration: Configuration = {
   /**
    * 功能开关
    *
-   * - devMessages: 开发模式下返回详细错误信息（生产环境应关闭）
+   * - devInteractions: 开发模式内置交互页面，生产环境必须禁用
    * - rpInitiatedLogout: RP 发起的登出（Relaying Party = 子系统），支持登出后重定向
    * - resourceIndicators: 资源指示器，限制令牌只能访问指定资源
    */
   features: {
-    devMessages: true,
+    devInteractions: { enabled: false },
     rpInitiatedLogout: {
       enabled: true,
       // 登出后默认重定向地址，子系统可通过 post_logout_redirect_uri 参数覆盖
       postLogoutRedirectUri: process.env.POST_LOGOUT_REDIRECT_URI || 'http://localhost:3000',
     },
     resourceIndicators: {
-      defaultResource: (_ctx: any) => OIDC_ISSUER,
+      defaultResource: (_ctx: Context) => OIDC_ISSUER,
       enabled: true,
-      getResource: (_ctx: any, _client: any, _clientUri: string) => OIDC_ISSUER,
+      getResource: (_ctx: Context, _client: unknown, _clientUri: string) => OIDC_ISSUER,
     },
   },
 
@@ -126,7 +127,7 @@ const configuration: Configuration = {
   },
 
   // 错误渲染：开发阶段输出到控制台便于调试
-  renderError: (_ctx: any, out: any, error: any) => {
+  renderError: (_ctx: Context, out: Record<string, unknown>, error: Error) => {
     console.error('OIDC Error:', error);
     return out;
   },

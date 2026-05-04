@@ -20,19 +20,13 @@
  * - consume 机制确保授权码只能使用一次，防止重放攻击
  */
 import prisma from '../prisma.ts';
+import type { OidcPayloadData, PayloadRecord } from '../types/oidc.d.ts';
 
 // 包含 grantId 的数据类型，撤销授权时需要按 grantId 批量删除
 const grantable = new Set([
   'AccessToken',
   'AuthorizationCode',
   'RefreshToken',
-  'DeviceCode',
-  'BackchannelAuthenticationRequest',
-]);
-
-// 可消费的数据类型（授权码只能使用一次，用 consumedAt 标记）
-const consumable = new Set([
-  'AuthorizationCode',
   'DeviceCode',
   'BackchannelAuthenticationRequest',
 ]);
@@ -59,12 +53,12 @@ class PrismaAdapter {
    * @param payload - oidc-provider 传入的完整数据对象
    * @param expiresIn - 过期时间（秒），用于计算 expiresAt
    */
-  upsert = async (id: string, payload: Record<string, any>, expiresIn?: number): Promise<void> => {
+  upsert = async (id: string, payload: OidcPayloadData, expiresIn?: number): Promise<void> => {
     const key = this.key(id);
     const data = JSON.stringify(payload);
     const expiresAt = expiresIn ? new Date(Date.now() + expiresIn * 1000) : null;
 
-    const record: Record<string, any> = {
+    const record: PayloadRecord = {
       id: key,
       type: this.name,
       data,
@@ -73,17 +67,17 @@ class PrismaAdapter {
 
     // grantId 用于关联同一授权下的所有令牌，用户登出时可批量撤销
     if (grantable.has(this.name) && payload.grantId) {
-      record.grantId = payload.grantId as string;
+      record.grantId = payload.grantId;
     }
 
     // userCode 用于设备码流程（Device Code Flow）
     if (payload.userCode) {
-      record.userCode = payload.userCode as string;
+      record.userCode = payload.userCode;
     }
 
     // uid 用于关联交互会话（Interaction）
     if (payload.uid) {
-      record.uid = payload.uid as string;
+      record.uid = payload.uid;
     }
 
     if (this.name === 'Client') {
@@ -96,8 +90,8 @@ class PrismaAdapter {
     } else {
       await prisma.oidcPayload.upsert({
         where: { id: key },
-        update: record as any,
-        create: record as any,
+        update: record,
+        create: record,
       });
     }
   };
@@ -112,13 +106,13 @@ class PrismaAdapter {
    *
    * 过期数据会在查询时自动清理（惰性删除策略）
    */
-  find = async (id: string): Promise<Record<string, any> | undefined> => {
+  find = async (id: string): Promise<OidcPayloadData | undefined> => {
     const key = this.key(id);
 
     if (this.name === 'Client') {
       const client = await prisma.oidcClient.findUnique({ where: { id: key } });
       if (!client) return undefined;
-      return JSON.parse(client.data);
+      return JSON.parse(client.data) as OidcPayloadData;
     }
 
     const payload = await prisma.oidcPayload.findUnique({ where: { id: key } });
@@ -130,7 +124,7 @@ class PrismaAdapter {
       return undefined;
     }
 
-    const data: Record<string, any> = JSON.parse(payload.data);
+    const data: OidcPayloadData = JSON.parse(payload.data);
 
     // 已消费的授权码标记 consumed=true，oidc-provider 会拒绝二次使用
     if (payload.consumedAt) {
@@ -160,7 +154,7 @@ class PrismaAdapter {
    *
    * Device Code Flow 中，用户在另一台设备上输入 userCode 完成授权
    */
-  findByUserCode = async (userCode: string): Promise<Record<string, any> | undefined> => {
+  findByUserCode = async (userCode: string): Promise<OidcPayloadData | undefined> => {
     const payload = await prisma.oidcPayload.findFirst({ where: { userCode } });
     if (!payload) return undefined;
 
@@ -169,7 +163,7 @@ class PrismaAdapter {
       return undefined;
     }
 
-    const data: Record<string, any> = JSON.parse(payload.data);
+    const data: OidcPayloadData = JSON.parse(payload.data);
     if (payload.consumedAt) {
       data.consumed = true;
     }
@@ -181,7 +175,7 @@ class PrismaAdapter {
    *
    * 用户在登录/授权交互过程中，oidc-provider 通过 uid 关联交互状态
    */
-  findByUid = async (uid: string): Promise<Record<string, any> | undefined> => {
+  findByUid = async (uid: string): Promise<OidcPayloadData | undefined> => {
     const payload = await prisma.oidcPayload.findFirst({ where: { uid } });
     if (!payload) return undefined;
 
@@ -190,7 +184,7 @@ class PrismaAdapter {
       return undefined;
     }
 
-    const data: Record<string, any> = JSON.parse(payload.data);
+    const data: OidcPayloadData = JSON.parse(payload.data);
     if (payload.consumedAt) {
       data.consumed = true;
     }

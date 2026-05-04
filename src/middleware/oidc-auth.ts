@@ -34,11 +34,11 @@ const oidcAuthMiddleware = async (ctx: Context, next: Next) => {
     }
 
     ctx.state.user = {
-      userId: parseInt(tokenData.accountId),
+      userId: parseInt(tokenData.accountId as string),
     };
 
     await next();
-  } catch (err: any) {
+  } catch (err: unknown) {
     ctx.status = 401;
     ctx.body = { msg: '无效的认证令牌' };
   }

@@ -40,8 +40,8 @@ log4js.configure({
 
 const logger = {
   access: log4js.getLogger('access'),
-  error: (...args: any[]) => {
-    log4js.getLogger('error').error(args);
+  error: (message: string, ...args: unknown[]) => {
+    log4js.getLogger('error').error(message, ...args);
   },
 };
 
