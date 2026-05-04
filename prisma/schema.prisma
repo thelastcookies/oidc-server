@@ -1,0 +1,59 @@
+generator client {
+  provider      = "prisma-client"
+  output        = "../src/generated/prisma"
+  binaryTargets = ["native", "debian-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique @db.VarChar(50)
+  password     String   @db.VarChar(255)
+  refreshToken String?  @map("refresh_token") @db.VarChar(500)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt    DateTime @map("updated_at")
+
+  @@map("user")
+}
+
+// OIDC 客户端应用
+model OidcClient {
+  id        String   @id @db.VarChar(120)
+  data      String   @db.MediumText
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@map("oidc_client")
+}
+
+// OIDC 数据存储（授权码、令牌、会话等）
+model OidcPayload {
+  id         String    @id @db.VarChar(120)
+  type       String    @db.VarChar(50)
+  data       String    @db.MediumText
+  grantId    String?   @map("grant_id") @db.VarChar(120)
+  userCode   String?   @map("user_code") @db.VarChar(120)
+  uid        String?   @db.VarChar(120)
+  expiresAt  DateTime? @map("expires_at") @db.Timestamp(0)
+  consumedAt DateTime? @map("consumed_at") @db.Timestamp(0)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
+
+  @@index([grantId])
+  @@index([userCode])
+  @@index([uid])
+  @@map("oidc_payload")
+}
+
+// OIDC 签名密钥
+model OidcKey {
+  id        Int      @id @default(autoincrement())
+  kid       String   @unique @db.VarChar(50)
+  data      String   @db.MediumText
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+
+  @@map("oidc_key")
+}

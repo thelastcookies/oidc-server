@@ -1,0 +1,62 @@
+{
+	"name": "node-api-base",
+	"private": true,
+	"version": "0.0.0",
+	"scripts": {
+		"dev": "dotenv -e .env/.env.development -- nodemon src/app.ts",
+		"p-init": "npx prisma init --datasource-provider mysql",
+		"pull": "dotenv -e .env/.env.development -- npx prisma db pull",
+		"baseline": "dotenv -e .env/.env.development -- npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script > prisma/migrations/0_init/migration.sql",
+		"resolve": "dotenv -e .env/.env.development -- npx prisma migrate resolve --applied 0_init",
+		"migrate": "dotenv -e .env/.env.development -- npx prisma migrate dev dotenv npx prisma migrate status",
+		"generate": "dotenv -e .env/.env.development -- npx prisma generate",
+		"studio": "dotenv -e .env/.env.development -- npx prisma studio --browser chrome --port 5555",
+		"build": "pnpm build:docker:tar",
+		"build:push": "pnpm build:docker:push",
+		"build:esbuild": "tsx ./esbuild.config.ts",
+		"build:docker": "pnpm build:esbuild && docker build --platform linux/amd64 -t thelastcookies/oidc-server:latest .",
+		"build:docker:tar": "pnpm build:docker && docker save -o oidc-server.tar thelastcookies/oidc-server:latest",
+		"build:docker:push": "pnpm build:docker && docker push thelastcookies/oidc-server:latest"
+	},
+	"dependencies": {
+		"@koa/bodyparser": "^5.1.1",
+		"@koa/cors": "^5.0.0",
+		"@koa/router": "^12.0.1",
+		"@prisma/client": "^6.1.0",
+		"bcryptjs": "^3.0.3",
+		"dayjs": "^1.11.13",
+		"ip": "^2.0.1",
+		"jsonwebtoken": "^9.0.3",
+		"koa": "^3.2.0",
+		"koa-body": "^6.0.1",
+		"koa-response-time": "^2.1.0",
+		"log4js": "^6.9.1",
+		"nanoid": "^5.0.9"
+	},
+	"devDependencies": {
+		"@commitlint/cli": "^19.3.0",
+		"@commitlint/config-conventional": "^19.2.2",
+		"@types/bcryptjs": "^3.0.0",
+		"@types/ip": "^1.1.3",
+		"@types/jsonwebtoken": "^9.0.10",
+		"@types/koa": "^2.15.0",
+		"@types/koa__cors": "^5.0.0",
+		"@types/koa__router": "^12.0.4",
+		"@types/node": "^20.14.1",
+		"dotenv": "^16.4.5",
+		"esbuild": "0.25.0",
+		"husky": "^9.0.11",
+		"nodemon": "^3.1.3",
+		"prisma": "^6.1.0",
+		"ts-node": "^10.9.2",
+		"tsx": "^4.15.4",
+		"typescript": "^5.4.5"
+	},
+	"nodemonConfig": {
+		"watch": [
+			"src/"
+		],
+		"delay": 2500,
+		"exec": "tsx"
+	}
+}
