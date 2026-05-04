@@ -720,7 +720,6 @@ export const UserScalarFieldEnum = {
   id: 'id',
   username: 'username',
   password: 'password',
-  refreshToken: 'refreshToken',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -771,18 +770,9 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
-export const NullsOrder = {
-  first: 'first',
-  last: 'last'
-} as const
-
-export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
-
-
 export const UserOrderByRelevanceFieldEnum = {
   username: 'username',
-  password: 'password',
-  refreshToken: 'refreshToken'
+  password: 'password'
 } as const
 
 export type UserOrderByRelevanceFieldEnum = (typeof UserOrderByRelevanceFieldEnum)[keyof typeof UserOrderByRelevanceFieldEnum]
@@ -794,6 +784,14 @@ export const OidcClientOrderByRelevanceFieldEnum = {
 } as const
 
 export type OidcClientOrderByRelevanceFieldEnum = (typeof OidcClientOrderByRelevanceFieldEnum)[keyof typeof OidcClientOrderByRelevanceFieldEnum]
+
+
+export const NullsOrder = {
+  first: 'first',
+  last: 'last'
+} as const
+
+export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 
 
 export const OidcPayloadOrderByRelevanceFieldEnum = {

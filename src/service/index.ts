@@ -1,1 +1,1 @@
-export * as authService from './auth.ts';
+export * as oidcService from './oidc.ts';

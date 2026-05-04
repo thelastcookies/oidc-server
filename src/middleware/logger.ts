@@ -1,35 +1,17 @@
-// koa-logger-middleware.js
-import log4js, { Logger } from 'log4js';
-import { Context, Next } from 'koa';
+/**
+ * 请求日志中间件
+ *
+ * 记录每个请求的方法、路径、状态码和响应时间。
+ * 使用 log4js 的 access 分类输出到 access.log 和 stdout。
+ */
+import type { Context, Next } from 'koa';
 import logger from '../utils/log.ts';
 
-const koaLogger = (logger: Logger, options: any) => {
-  const connectLogger = log4js.connectLogger(logger, options);
-
-  return async (ctx: Context, next: Next) => {
-    const start = Date.now();
-    const req = ctx.req;
-    const res = ctx.res;
-
-    await next();
-    // 手动调用 connectLogger 中间件
-    await new Promise<void>((resolve, reject) => {
-      connectLogger(req, res, (err: Error) => {
-        if (err) return reject(err);
-        resolve();
-      });
-    });
-    const responseTime = Date.now() - start;
-    console.log(`Response Time: ${responseTime / 1000}s`);
-  };
+const loggerMiddleware = async (ctx: Context, next: Next) => {
+  const start = Date.now();
+  await next();
+  const responseTime = Date.now() - start;
+  logger.access.info(`${ctx.method} ${ctx.url} ${ctx.status} - ${responseTime}ms`);
 };
-const format = (req: any, res: any, formatter: (str: string) => string) => {
-  return formatter(`:remote-addr - HTTP/:http-version :method :url :status`);
-};
-
-const loggerMiddleware = koaLogger(logger.access, {
-  level: 'auto',
-  format: format,
-});
 
 export default loggerMiddleware;

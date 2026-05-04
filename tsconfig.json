@@ -16,6 +16,7 @@
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "useDefineForClassFields": true,
+    "skipLibCheck": true,
     /* Linting */
     "strict": true,
     "noUnusedLocals": false,

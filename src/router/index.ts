@@ -1,8 +1,8 @@
 import Router from '@koa/router';
-import auth from './auth.ts';
+import oidc from './oidc.ts';
 
 const router = new Router({
-  prefix: '/api',
+  prefix: '/sso',
 });
 
 router.get('/', async (ctx) => {
@@ -10,6 +10,6 @@ router.get('/', async (ctx) => {
   ctx.body = '<h1>hello world!</h1>';
 });
 
-router.use(auth.routes(), auth.allowedMethods());
+router.use(oidc.routes(), oidc.allowedMethods());
 
 export default router;

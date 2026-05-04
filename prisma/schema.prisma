@@ -9,20 +9,23 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// 用户表：SSO 认证中心的用户账号
 model User {
-  id           Int      @id @default(autoincrement())
-  username     String   @unique @db.VarChar(50)
-  password     String   @db.VarChar(255)
-  refreshToken String?  @map("refresh_token") @db.VarChar(500)
-  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt    DateTime @map("updated_at")
+  id        Int      @id @default(autoincrement())
+  username  String   @unique @db.VarChar(50)
+  password  String   @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 
   @@map("user")
 }
 
-// OIDC 客户端应用
+// OIDC 客户端应用：每个接入 SSO 的子系统都需要注册
+// 数据以 JSON 格式存储在 data 字段中，oidc-provider 通过 Adapter 读取
 model OidcClient {
+  // 格式："Client:client_id"
   id        String   @id @db.VarChar(120)
+  // JSON：client_id, client_secret_hash, redirect_uris 等
   data      String   @db.MediumText
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
@@ -30,15 +33,23 @@ model OidcClient {
   @@map("oidc_client")
 }
 
-// OIDC 数据存储（授权码、令牌、会话等）
+// OIDC 数据存储：授权码、令牌、会话等临时数据
+// 用 type 字段区分数据类型，expiresAt 控制过期
 model OidcPayload {
+  // 格式："AccessToken:xxx"、"AuthorizationCode:xxx" 等
   id         String    @id @db.VarChar(120)
+  // 数据类型：AccessToken / AuthorizationCode / RefreshToken / Session 等
   type       String    @db.VarChar(50)
+  // JSON：令牌完整数据
   data       String    @db.MediumText
+  // grantId 关联同一授权下的所有令牌，用户登出时可通过 deleteMany 批量撤销
   grantId    String?   @map("grant_id") @db.VarChar(120)
+  // userCode 用于设备码流程（Device Code Flow）
   userCode   String?   @map("user_code") @db.VarChar(120)
+  // uid 关联交互会话（Interaction）
   uid        String?   @db.VarChar(120)
   expiresAt  DateTime? @map("expires_at") @db.Timestamp(0)
+  // consumedAt 标记授权码已使用，防止重放攻击
   consumedAt DateTime? @map("consumed_at") @db.Timestamp(0)
   createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
 
@@ -48,10 +59,13 @@ model OidcPayload {
   @@map("oidc_payload")
 }
 
-// OIDC 签名密钥
+// OIDC 签名密钥：RSA 私钥，用于签发 ID Token
+// 密钥持久化到数据库，服务重启后不需要重新生成（否则之前签发的令牌会失效）
 model OidcKey {
   id        Int      @id @default(autoincrement())
+  // 密钥 ID，用于 JWKS 端点匹配
   kid       String   @unique @db.VarChar(50)
+  // JWK 格式的私钥
   data      String   @db.MediumText
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
 

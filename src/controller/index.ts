@@ -1,1 +1,1 @@
-export * as authController from './auth.ts';
+export * as oidcController from './oidc.ts';

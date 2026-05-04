@@ -1,12 +1,11 @@
 import dotenv from 'dotenv';
-import Koa from 'koa';
 import cors from '@koa/cors';
 import bodyParser from '@koa/bodyparser';
-import router from './router';
 import ip from 'ip';
+import router from './router';
 import loggerMiddleware from './middleware/logger.ts';
 import responseMiddleware from './middleware/response.ts';
-import notFoundMiddleware from './middleware/not-found.ts';
+import initProvider from './oidc/provider.ts';
 
 dotenv.config({
   path: ['.env/.env', '.env/.env.development', '.env/.env.production'],
@@ -15,37 +14,46 @@ dotenv.config({
 const ipAddr = ip.address();
 const PORT = process.env.PORT || 3000;
 
-const app = new Koa();
-
-/*************
- * Middlewares
+/**
+ * 启动认证服务
+ *
+ * 架构：OIDC Provider 本身就是主应用，自定义路由作为附加中间件。
+ *
+ * 请求处理流程：
+ * - OIDC 路由（/auth、/token、/me、/jwks 等）：
+ *   Provider 的内部路由器直接处理，不经过我们的中间件
+ * - 自定义路由（/sso/oidc/interaction/*、/sso/oidc/client/* 等）：
+ *   Provider 的路由器不匹配，调用 next()，我们的中间件接管
  */
-// 统一返回结构
-app.use(responseMiddleware);
-// 处理 404
-app.use(notFoundMiddleware);
-// 日志记录
-app.use(loggerMiddleware);
-// 处理跨域
-app.use(cors());
-// 解析请求体
-app.use(bodyParser({ jsonLimit: '250mb' }));
-// 路由配置
-app.use(router.routes()).use(router.allowedMethods());
+const start = async () => {
+  const provider = await initProvider();
 
-app.listen(PORT, () => console.log(`
-🚀 Server ready at: http://${ipAddr}:${PORT}`),
-);
+  // 将 provider 实例存入 app context，供 controller 通过 ctx.app.context.oidc 访问
+  provider.app.context.oidc = provider;
 
-// 屏蔽默认错误输出
-app.silent = true;
-// 自定义错误处理
-app.on('error', err => {
-  // 屏蔽以下错误输出
-  if (err.code === 'ECONNRESET' || err.code === 'EPIPE') {
-    // 用于屏蔽在客户端取消视频流连接时的错误输出
-    return;
-  }
-  // 其他的错误正常输出
-  console.error('Server error', err);
+  // 自定义中间件：添加在 Provider 内部中间件之后，仅处理非 OIDC 路由
+  provider.app.use(responseMiddleware);
+  provider.app.use(loggerMiddleware);
+  provider.app.use(cors());
+  provider.app.use(bodyParser());
+  provider.app.use(router.routes()).use(router.allowedMethods());
+
+  // 屏蔽默认错误输出
+  provider.app.silent = true;
+  // 自定义错误处理
+  provider.app.on('error', (err: any) => {
+    if (err.code === 'ECONNRESET' || err.code === 'EPIPE') {
+      return;
+    }
+    console.error('Server error', err);
+  });
+
+  provider.app.listen(PORT, () => console.log(`
+🚀 Server ready at: https://${ipAddr}:${PORT}
+📖 OIDC Discovery: https://${ipAddr}:${PORT}/.well-known/openid-configuration`));
+};
+
+start().catch((err) => {
+  console.error('Failed to start server:', err);
+  process.exit(1);
 });
