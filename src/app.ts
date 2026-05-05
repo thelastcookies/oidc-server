@@ -28,9 +28,6 @@ const PORT = process.env.PORT || 3000;
 const start = async () => {
   const provider = await initProvider();
 
-  // 将 provider 实例存入 app context，供 controller 通过 ctx.oidc 访问
-  provider.context.oidc = provider;
-
   // 自定义中间件：添加在 Provider 内部中间件之后，仅处理非 OIDC 路由
   provider.use(responseMiddleware);
   provider.use(loggerMiddleware);

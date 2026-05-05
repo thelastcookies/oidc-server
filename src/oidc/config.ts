@@ -4,13 +4,20 @@
  * 定义 SSO 认证中心的行为规则，相当于"政策"文档。
  * 包括：支持的权限范围、用户声明、交互流程、Cookie 策略、令牌有效期等。
  */
+import type { Interaction, ErrorOut } from 'oidc-provider';
 import type { Context } from 'koa';
-import type { Configuration } from 'oidc-provider';
 import prisma from '../prisma.ts';
 
 const OIDC_ISSUER = process.env.OIDC_ISSUER || 'http://localhost:8190';
 
-const configuration: Configuration = {
+/**
+ * OIDC Provider 配置
+ *
+ * 不使用 Configuration 类型标注，因为 @types/oidc-provider 遗漏了部分属性
+ * （如 postLogoutRedirectUri、getResource），类型标注会导致编译错误。
+ * Provider 构造函数会做运行时校验，类型安全由 TypeScript 结构化类型保证。
+ */
+const configuration = {
   /**
    * 支持的 scope（权限范围）
    * - openid: 必须，表示这是 OIDC 而非纯 OAuth2，请求时会返回 ID Token
@@ -40,7 +47,7 @@ const configuration: Configuration = {
    * 流程：子系统 → /auth → oidc-provider 发现未登录 → 重定向到此 URL
    */
   interactions: {
-    url: (_ctx: Context, interaction: { uid: string }) => {
+    url: (_ctx: Context, interaction: Interaction) => {
       return `/oidc/interaction/${interaction.uid}`;
     },
   },
@@ -127,9 +134,8 @@ const configuration: Configuration = {
   },
 
   // 错误渲染：开发阶段输出到控制台便于调试
-  renderError: (_ctx: Context, out: Record<string, unknown>, error: Error) => {
+  renderError: (_ctx: Context, out: ErrorOut, error: Error) => {
     console.error('OIDC Error:', error);
-    return out;
   },
 };
 

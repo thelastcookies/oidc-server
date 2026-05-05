@@ -4,6 +4,7 @@
  * 所有自定义接口的响应都遵循此格式，由 responseMiddleware 自动包装。
  * OIDC Provider 路由（/auth、/token 等）不使用此格式。
  */
+import type { ResponseType, ClientAuthMethod } from 'oidc-provider';
 
 /** 成功响应 */
 export interface ApiSuccessResponse<T = unknown> {
@@ -23,12 +24,12 @@ export interface ApiErrorResponse {
 
 /**
  * 客户端管理
+ *
+ * 字段命名遵循 OIDC 规范（snake_case），与 oidc-provider 的 ClientMetadata 保持一致。
+ * 这样 API 入参 → 数据库存储 → oidc-provider 消费，三层使用同一份字段名，无需转换。
  */
 
-/**
- * 创建客户端请求体
- **/
-
+/** 创建客户端请求体 */
 export interface CreateClientRequest {
   // 客户端标识（如 "my-app"）
   client_id: string;
@@ -41,9 +42,9 @@ export interface CreateClientRequest {
   // 允许的授权类型（默认 authorization_code + refresh_token）
   grant_types?: string[];
   // 允许的响应类型（默认 code，即授权码模式）
-  response_types?: string[];
+  response_types?: ResponseType[];
   // 令牌端点认证方式（默认 client_secret_post）
-  token_endpoint_auth_method?: string;
+  token_endpoint_auth_method?: ClientAuthMethod;
 }
 
 /** 更新客户端请求体 */
@@ -52,7 +53,7 @@ export interface UpdateClientRequest {
   redirect_uris?: string[];
   post_logout_redirect_uris?: string[];
   grant_types?: string[];
-  response_types?: string[];
+  response_types?: ResponseType[];
 }
 
 /** 客户端列表项（不含敏感信息） */
@@ -61,7 +62,7 @@ export interface ClientInfo {
   client_name: string;
   redirect_uris: string[];
   grant_types: string[];
-  response_types: string[];
+  response_types: ResponseType[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -69,7 +70,7 @@ export interface ClientInfo {
 /** 客户端详情（含完整配置，不含 client_secret） */
 export interface ClientDetail extends ClientInfo {
   post_logout_redirect_uris: string[];
-  token_endpoint_auth_method: string;
+  token_endpoint_auth_method: ClientAuthMethod;
 }
 
 /**
@@ -103,4 +104,15 @@ export interface InteractionRedirect {
 export interface ErrorBody {
   msg: string;
   detail?: string | null;
+}
+
+/** oidc_payload 表的写入记录结构 */
+export interface PayloadRecord {
+  id: string;
+  type: string;
+  data: string;
+  expiresAt: Date | null;
+  grantId?: string;
+  userCode?: string;
+  uid?: string;
 }

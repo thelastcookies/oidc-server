@@ -22,23 +22,19 @@
  */
 import type { Context } from 'koa';
 import type Provider from 'oidc-provider';
+import type { Interaction, InteractionResults } from 'oidc-provider';
 import type {
+  CreateClientRequest,
+  InteractionRedirect,
   LoginRequest,
   RegisterRequest,
   UpdateClientRequest,
-  InteractionRedirect, CreateClientRequest,
 } from '../types/api.d.ts';
-import type {
-  InteractionDetails,
-  LoginResult,
-  ConsentResult,
-  AbortResult,
-} from '../types/oidc.d.ts';
 import * as service from '../service/index.ts';
 
 /** 获取当前请求的 OIDC Provider 实例 */
 const getProvider = (ctx: Context): Provider => {
-  const provider = ctx.oidc;
+  const provider = ctx.oidc?.provider;
   if (!provider) {
     throw new Error('OIDC Provider 未初始化');
   }
@@ -54,7 +50,7 @@ const getProvider = (ctx: Context): Provider => {
  *
  * Vue 登录页根据这些参数：
  * - 展示登录/注册表单
- * - 调用 /sso/oidc/interaction/:uid/login 或 /sso/oidc/interaction/:uid/register
+ * - 调用 /oidc/interaction/:uid/login 或 /oidc/interaction/:uid/register
  * - 获取 redirect 地址后跳转回子系统
  *
  * 环境变量 SSO_LOGIN_PAGE 指定 Vue 登录页的完整 URL，
@@ -63,7 +59,7 @@ const getProvider = (ctx: Context): Provider => {
 export const getInteraction = async (ctx: Context) => {
   try {
     const provider = getProvider(ctx);
-    const details: InteractionDetails = await provider.interactionDetails(ctx.req, ctx.res);
+    const details: Interaction = await provider.interactionDetails(ctx.req, ctx.res);
     const { uid, prompt, params } = details;
 
     const loginPageUrl = process.env.SSO_LOGIN_PAGE || 'http://localhost:8191/login';
@@ -108,10 +104,10 @@ export const login = async (ctx: Context) => {
     const provider = getProvider(ctx);
     const user = await service.verifyUserCredentials(username, password);
 
-    const details: InteractionDetails = await provider.interactionDetails(ctx.req, ctx.res);
+    const details: Interaction = await provider.interactionDetails(ctx.req, ctx.res);
     const { prompt } = details;
 
-    const result: LoginResult = {
+    const result: InteractionResults = {
       login: {
         accountId: String(user.id),
         remember: true,
@@ -155,10 +151,10 @@ export const register = async (ctx: Context) => {
     const provider = getProvider(ctx);
     const user = await service.register(username, password);
 
-    const details: InteractionDetails = await provider.interactionDetails(ctx.req, ctx.res);
+    const details: Interaction = await provider.interactionDetails(ctx.req, ctx.res);
     const { prompt } = details;
 
-    const result: LoginResult = {
+    const result: InteractionResults = {
       login: {
         accountId: String(user.id),
         remember: true,
@@ -190,10 +186,10 @@ export const register = async (ctx: Context) => {
 export const confirm = async (ctx: Context) => {
   try {
     const provider = getProvider(ctx);
-    const details: InteractionDetails = await provider.interactionDetails(ctx.req, ctx.res);
+    const details: Interaction = await provider.interactionDetails(ctx.req, ctx.res);
     const { prompt } = details;
 
-    let result: ConsentResult | Record<string, never> = {};
+    let result: InteractionResults = {};
 
     if (prompt.name === 'consent') {
       result = {
@@ -221,7 +217,7 @@ export const confirm = async (ctx: Context) => {
 export const abort = async (ctx: Context) => {
   try {
     const provider = getProvider(ctx);
-    const result: AbortResult = {
+    const result: InteractionResults = {
       error: 'access_denied',
       error_description: '用户拒绝授权',
     };
@@ -259,8 +255,7 @@ export const createClient = async (ctx: Context) => {
 
 /** 获取客户端列表（需 OIDC 认证） */
 export const getClientList = async (ctx: Context) => {
-  const result = await service.getClientList();
-  ctx.body = result;
+  ctx.body = await service.getClientList();
 };
 
 /** 获取客户端详情（需 OIDC 认证） */
@@ -268,8 +263,7 @@ export const getClient = async (ctx: Context) => {
   const { clientId } = ctx.params as { clientId: string };
 
   try {
-    const result = await service.getClient(clientId);
-    ctx.body = result;
+    ctx.body = await service.getClient(clientId);
   } catch (err: unknown) {
     ctx.status = 404;
     ctx.body = { msg: (err as Error).message };
@@ -282,8 +276,7 @@ export const updateClient = async (ctx: Context) => {
   const body = ctx.request.body as UpdateClientRequest;
 
   try {
-    const result = await service.updateClient(clientId, body);
-    ctx.body = result;
+    ctx.body = await service.updateClient(clientId, body);
   } catch (err: unknown) {
     ctx.status = 400;
     ctx.body = { msg: (err as Error).message };

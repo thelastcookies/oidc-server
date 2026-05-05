@@ -19,7 +19,12 @@ import type {
   ClientDetail,
   UserCredentials,
 } from '../types/api.d.ts';
-import type { OidcClientData } from '../types/oidc.d.ts';
+import type { ClientMetadata, ResponseType, ClientAuthMethod } from 'oidc-provider';
+
+/** 创建客户端时的默认值 */
+const DEFAULT_GRANT_TYPES: string[] = ['authorization_code', 'refresh_token'];
+const DEFAULT_RESPONSE_TYPES: ResponseType[] = ['code'];
+const DEFAULT_AUTH_METHOD: ClientAuthMethod = 'client_secret_post';
 
 /**
  * 创建 OIDC 客户端
@@ -34,15 +39,15 @@ export const createClient = async (data: CreateClientRequest) => {
     throw new Error('客户端 ID 已存在');
   }
 
-  const clientData: OidcClientData = {
+  const clientData: ClientMetadata = {
     client_id: data.client_id,
     client_secret: await bcrypt.hash(data.client_secret, 10),  // 哈希存储，和密码一样不能明文
     redirect_uris: data.redirect_uris,
     client_name: data.client_name || data.client_id,
     post_logout_redirect_uris: data.post_logout_redirect_uris || [],
-    grant_types: data.grant_types || ['authorization_code', 'refresh_token'],
-    response_types: data.response_types || ['code'],
-    token_endpoint_auth_method: data.token_endpoint_auth_method || 'client_secret_post',
+    grant_types: data.grant_types || DEFAULT_GRANT_TYPES,
+    response_types: data.response_types || DEFAULT_RESPONSE_TYPES,
+    token_endpoint_auth_method: data.token_endpoint_auth_method || DEFAULT_AUTH_METHOD,
   };
 
   // 存入 oidc_client 表，id 格式为 "Client:client_id"，与 Adapter.key() 生成的 key 一致
@@ -55,10 +60,10 @@ export const createClient = async (data: CreateClientRequest) => {
 
   return {
     client_id: data.client_id,
-    client_name: clientData.client_name,
+    client_name: clientData.client_name!,
     redirect_uris: data.redirect_uris,
-    grant_types: clientData.grant_types,
-    response_types: clientData.response_types,
+    grant_types: clientData.grant_types!,
+    response_types: clientData.response_types!,
   };
 };
 
@@ -66,13 +71,13 @@ export const createClient = async (data: CreateClientRequest) => {
 export const getClientList = async (): Promise<ClientInfo[]> => {
   const clients = await prisma.oidcClient.findMany();
   return clients.map((c): ClientInfo => {
-    const data: OidcClientData = JSON.parse(c.data);
+    const data: ClientMetadata = JSON.parse(c.data);
     return {
-      client_id: data.client_id,
-      client_name: data.client_name,
-      redirect_uris: data.redirect_uris,
-      grant_types: data.grant_types,
-      response_types: data.response_types,
+      client_id: data.client_id!,
+      client_name: data.client_name!,
+      redirect_uris: data.redirect_uris!,
+      grant_types: data.grant_types!,
+      response_types: data.response_types!,
       createdAt: c.createdAt,
       updatedAt: c.updatedAt,
     };
@@ -85,15 +90,15 @@ export const getClient = async (clientId: string): Promise<ClientDetail> => {
   if (!client) {
     throw new Error('客户端不存在');
   }
-  const data: OidcClientData = JSON.parse(client.data);
+  const data: ClientMetadata = JSON.parse(client.data);
   return {
-    client_id: data.client_id,
-    client_name: data.client_name,
-    redirect_uris: data.redirect_uris,
-    post_logout_redirect_uris: data.post_logout_redirect_uris,
-    grant_types: data.grant_types,
-    response_types: data.response_types,
-    token_endpoint_auth_method: data.token_endpoint_auth_method,
+    client_id: data.client_id!,
+    client_name: data.client_name!,
+    redirect_uris: data.redirect_uris!,
+    post_logout_redirect_uris: data.post_logout_redirect_uris!,
+    grant_types: data.grant_types!,
+    response_types: data.response_types!,
+    token_endpoint_auth_method: data.token_endpoint_auth_method!,
     createdAt: client.createdAt,
     updatedAt: client.updatedAt,
   };
@@ -109,8 +114,8 @@ export const updateClient = async (
     throw new Error('客户端不存在');
   }
 
-  const existingData: OidcClientData = JSON.parse(client.data);
-  const updatedData: OidcClientData = { ...existingData };
+  const existingData: ClientMetadata = JSON.parse(client.data);
+  const updatedData: ClientMetadata = { ...existingData };
 
   if (updates.client_name) updatedData.client_name = updates.client_name;
   if (updates.redirect_uris) updatedData.redirect_uris = updates.redirect_uris;
@@ -125,8 +130,8 @@ export const updateClient = async (
 
   return {
     client_id: clientId,
-    client_name: updatedData.client_name,
-    redirect_uris: updatedData.redirect_uris,
+    client_name: updatedData.client_name!,
+    redirect_uris: updatedData.redirect_uris!,
   };
 };
 

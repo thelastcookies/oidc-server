@@ -8,10 +8,10 @@
 import { generateKeyPairSync } from 'node:crypto';
 import Provider from 'oidc-provider';
 import type { Context, Next } from 'koa';
+import type { JWK } from 'oidc-provider';
 import PrismaAdapter from './adapter.ts';
 import configuration, { OIDC_ISSUER } from './config.ts';
 import prisma from '../prisma.ts';
-import type { JwkKey } from '../types/oidc.d.ts';
 
 /**
  * 生成 RSA 密钥对并导出为 JWK 格式
@@ -19,12 +19,12 @@ import type { JwkKey } from '../types/oidc.d.ts';
  * JWK（JSON Web Key）的好处是可以通过 HTTP 端点（/jwks）分发公钥，
  * 子系统无需预先配置密钥，启动时从 JWKS 端点获取即可。
  */
-const generateKeys = (): { kid: string; jwk: JwkKey } => {
+const generateKeys = (): { kid: string; jwk: JWK } => {
   const { publicKey, privateKey } = generateKeyPairSync('rsa', {
     modulusLength: 2048,  // RSA 2048 位，安全强度足够
   });
 
-  const privateJwk = privateKey.export({ format: 'jwk' }) as unknown as JwkKey;
+  const privateJwk = privateKey.export({ format: 'jwk' }) as JWK;
   const kid = `key-${Date.now()}`;  // 密钥 ID，用于 JWKS 端点匹配密钥
   privateJwk.kid = kid;
   privateJwk.use = 'sig';     // 用途：签名
@@ -44,7 +44,7 @@ const loadOrGenerateKeys = async () => {
 
   if (existingKeys.length > 0) {
     return {
-      keys: existingKeys.map((k) => JSON.parse(k.data) as JwkKey),
+      keys: existingKeys.map((k) => JSON.parse(k.data) as JWK),
     };
   }
 

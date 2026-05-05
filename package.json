@@ -37,6 +37,7 @@
 		"@types/koa__cors": "^5.0.0",
 		"@types/koa__router": "^12.0.4",
 		"@types/node": "^20.14.1",
+		"@types/oidc-provider": "^9.5.0",
 		"dotenv": "^16.4.5",
 		"esbuild": "0.25.0",
 		"husky": "^9.0.11",

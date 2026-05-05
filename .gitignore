@@ -132,6 +132,6 @@ dist
 /repo
 
 # docker builds
-/sso-oidc*
+/oidc-server*
 
 README_DEPLOY.md
