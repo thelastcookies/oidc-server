@@ -1,17 +1,18 @@
 /**
  * OIDC Provider 初始化
  *
- * 创建 oidc-provider 实例，处理 RSA 密钥管理和全局错误处理。
+ * 创建 oidc-provider 实例，处理 RSA 密钥管理、默认 Client 种子和全局错误处理。
  *
  * 使用 RS256 非对称加密，认证中心用私钥签名，子系统只需公钥验证
  */
 import { generateKeyPairSync } from 'node:crypto';
 import Provider from 'oidc-provider';
 import type { Context, Next } from 'koa';
-import type { JWK } from 'oidc-provider';
+import type { JWK, ClientMetadata } from 'oidc-provider';
 import PrismaAdapter from './adapter.ts';
 import configuration, { OIDC_ISSUER } from './config.ts';
 import prisma from '../prisma.ts';
+import bcrypt from 'bcryptjs';
 
 /**
  * 生成 RSA 密钥对并导出为 JWK 格式
@@ -62,6 +63,42 @@ const loadOrGenerateKeys = async () => {
 };
 
 /**
+ * 种子默认 Client
+ *
+ * 解决冷启动问题，首次启动时自动创建默认 Client，后续检测到已有 Client 则跳过。
+ *
+ * 默认 Client 的 client_id 和 client_secret 从环境变量读取，
+ * 未配置时使用内置默认值（仅适用于开发环境）。
+ */
+const seedDefaultClient = async () => {
+  const clientCount = await prisma.oidcClient.count();
+  if (clientCount > 0) return null;
+
+  const clientId = process.env.DEFAULT_CLIENT_ID || 'default-client';
+  const clientSecret = process.env.DEFAULT_CLIENT_SECRET || 'default-secret';
+
+  const clientData: ClientMetadata = {
+    client_id: clientId,
+    client_secret: await bcrypt.hash(clientSecret, 10),
+    redirect_uris: [`${OIDC_ISSUER}/cb`],
+    client_name: 'Default Client',
+    post_logout_redirect_uris: [],
+    grant_types: ['authorization_code', 'refresh_token'],
+    response_types: ['code'],
+    token_endpoint_auth_method: 'client_secret_post',
+  };
+
+  await prisma.oidcClient.create({
+    data: {
+      id: `Client:${clientId}`,
+      data: JSON.stringify(clientData),
+    },
+  });
+
+  return { clientId, clientSecret };
+};
+
+/**
  * 初始化 OIDC Provider
  *
  * 将 Adapter、配置、密钥组合创建 Provider 实例，
@@ -87,6 +124,16 @@ const initProvider = async () => {
       ctx.body = { error: error.error || 'server_error', message: error.message };
     }
   });
+
+  // 种子默认 Client（首次启动时）
+  const seeded = await seedDefaultClient();
+  if (seeded) {
+    console.log(`
+🔑 Default Client seeded:
+   - client_id:     ${seeded.clientId}
+   - client_secret: ${seeded.clientSecret}
+   ⚠️  Please change the default credentials in production!`);
+  }
 
   return provider;
 };

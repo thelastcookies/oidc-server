@@ -53,7 +53,7 @@ const getProvider = (ctx: Context): Provider => {
  * - 调用 /oidc/interaction/:uid/login 或 /oidc/interaction/:uid/register
  * - 获取 redirect 地址后跳转回子系统
  *
- * 环境变量 SSO_LOGIN_PAGE 指定 Vue 登录页的完整 URL，
+ * 环境变量 SSO_LOGIN_URL 指定 Vue 登录页的完整 URL，
  * 例如 https://sso.example.com/login
  */
 export const getInteraction = async (ctx: Context) => {
@@ -62,7 +62,7 @@ export const getInteraction = async (ctx: Context) => {
     const details: Interaction = await provider.interactionDetails(ctx.req, ctx.res);
     const { uid, prompt, params } = details;
 
-    const loginPageUrl = process.env.SSO_LOGIN_PAGE || 'http://localhost:8191/login';
+    const loginPageUrl = process.env.SSO_LOGIN_URL || 'http://localhost:8191/login';
     const redirectUrl = new URL(loginPageUrl);
     redirectUrl.searchParams.set('uid', uid);
     redirectUrl.searchParams.set('prompt', prompt.name);

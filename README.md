@@ -594,7 +594,7 @@ const newTokens = await refreshResponse.json();
 | `PORT` | 服务端口 | `3000` |
 | `DATABASE_URL` | MySQL 连接字符串 | — |
 | `OIDC_ISSUER` | OIDC Issuer URL | `http://localhost:8190` |
-| `SSO_LOGIN_PAGE` | Vue 登录页 URL | `http://localhost:5173/login` |
+| `SSO_LOGIN_URL` | Vue 登录页 URL | `http://localhost:5173/login` |
 | `COOKIE_KEYS` | Cookie 签名密钥（逗号分隔） | `oidc-cookie-key-1,oidc-cookie-key-2` |
 | `POST_LOGOUT_REDIRECT_URI` | 登出后默认重定向地址 | `http://localhost:3000` |
 

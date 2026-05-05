@@ -33,9 +33,9 @@ router.post('/interaction/:uid/confirm', controller.confirm);
 router.post('/interaction/:uid/abort', controller.abort);
 
 // 客户端管理接口：需 OIDC Access Token 认证，供管理员操作
-router.post('/client', oidcAuthMiddleware, controller.createClient);
 router.get('/client', oidcAuthMiddleware, controller.getClientList);
 router.get('/client/:clientId', oidcAuthMiddleware, controller.getClient);
+router.post('/client', oidcAuthMiddleware, controller.createClient);
 router.put('/client/:clientId', oidcAuthMiddleware, controller.updateClient);
 router.delete('/client/:clientId', oidcAuthMiddleware, controller.deleteClient);
 
