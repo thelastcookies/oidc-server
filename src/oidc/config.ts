@@ -133,9 +133,15 @@ const configuration = {
     Grant: 7 * 24 * 60 * 60,         // 7 天
   },
 
-  // 错误渲染：开发阶段输出到控制台便于调试
+  /**
+   * 错误渲染
+   *
+   * oidc-provider 遇到错误时调用此函数渲染响应。
+   * out 包含标准 OIDC 错误字段（error、error_description 等），
+   */
   renderError: (_ctx: Context, out: ErrorOut, error: Error) => {
-    console.error('OIDC Error:', error);
+    console.error('OIDC Error:', error.message || error);
+    _ctx.body = out;
   },
 };
 
