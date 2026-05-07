@@ -34,7 +34,7 @@ import * as service from '../service/index.ts';
 
 /** 获取当前请求的 OIDC Provider 实例 */
 const getProvider = (ctx: Context): Provider => {
-  const provider = ctx.oidc?.provider;
+  const provider = ctx.app as Provider;
   if (!provider) {
     throw new Error('OIDC Provider 未初始化');
   }
