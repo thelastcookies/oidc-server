@@ -21,8 +21,6 @@
  *   当前实现自动确认。
  */
 import type { Context } from 'koa';
-import type Provider from 'oidc-provider';
-import type { Interaction, InteractionResults } from 'oidc-provider';
 import type {
   CreateClientRequest,
   InteractionRedirect,
@@ -31,6 +29,8 @@ import type {
   UpdateClientRequest,
 } from '../types/api.d.ts';
 import * as service from '../service/index.ts';
+import type Provider from 'oidc-provider';
+import type { Interaction, InteractionResults } from 'oidc-provider';
 
 /** 获取当前请求的 OIDC Provider 实例 */
 const getProvider = (ctx: Context): Provider => {
@@ -114,14 +114,9 @@ export const login = async (ctx: Context) => {
       },
     };
 
-    if (prompt.name === 'consent') {
-      result.consent = { rejected: false };
-    }
-
     const redirect = await provider.interactionResult(ctx.req, ctx.res, result, {
       mergeWithLastSubmission: false,
     });
-
     ctx.body = { redirect } as InteractionRedirect;
   } catch (err: unknown) {
     ctx.status = 401;
@@ -151,19 +146,12 @@ export const register = async (ctx: Context) => {
     const provider = getProvider(ctx);
     const user = await service.register(username, password);
 
-    const details: Interaction = await provider.interactionDetails(ctx.req, ctx.res);
-    const { prompt } = details;
-
     const result: InteractionResults = {
       login: {
         accountId: String(user.id),
         remember: true,
       },
     };
-
-    if (prompt.name === 'consent') {
-      result.consent = { rejected: false };
-    }
 
     const redirect = await provider.interactionResult(ctx.req, ctx.res, result, {
       mergeWithLastSubmission: false,
@@ -182,18 +170,52 @@ export const register = async (ctx: Context) => {
  * 当 oidc-provider 需要用户明确同意授权时（prompt.name === 'consent'），
  * 用户点击"同意"后调用此接口。
  * 当前实现自动确认，未来可扩展为展示授权确认页面。
+ *
+ * 关键：必须创建/更新 Grant 对象，将缺失的 scope 和 claim 添加到授权中，
+ * 并将 grantId 传入 consent result，否则 oidc-provider 会认为授权未完成，
+ * 反复触发 consent 交互导致无限重定向。
+ * 参考：oidc-provider devInteractions 源码
  */
 export const confirm = async (ctx: Context) => {
   try {
     const provider = getProvider(ctx);
     const details: Interaction = await provider.interactionDetails(ctx.req, ctx.res);
-    const { prompt } = details;
+    const { prompt, grantId, session, params } = details;
 
     let result: InteractionResults = {};
 
     if (prompt.name === 'consent') {
+      let grant;
+      if (grantId) {
+        grant = await provider.Grant.find(grantId);
+      } else {
+        grant = new provider.Grant({
+          accountId: session?.accountId,
+          clientId: params.client_id as string,
+        });
+      }
+
+      if (!grant) {
+        console.error('无法创建或加载 Grant');
+        return;
+      }
+
+      if (prompt.details?.missingOIDCScope) {
+        grant.addOIDCScope((prompt.details.missingOIDCScope as string[]).join(' '));
+      }
+      if (prompt.details?.missingOIDCClaims) {
+        grant.addOIDCClaims(prompt.details.missingOIDCClaims as string[]);
+      }
+      if (prompt.details?.missingResourceScopes) {
+        for (const [indicator, scope] of Object.entries(prompt.details.missingResourceScopes as Record<string, string[]>)) {
+          grant.addResourceScope(indicator, scope.join(' '));
+        }
+      }
+
       result = {
-        consent: { rejected: false },
+        consent: {
+          grantId: await grant.save(),
+        },
       };
     }
 
