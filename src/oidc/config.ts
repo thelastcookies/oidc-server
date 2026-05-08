@@ -108,8 +108,8 @@ const configuration = {
       postLogoutRedirectUri: process.env.POST_LOGOUT_REDIRECT_URI || 'http://localhost:3000',
     },
     resourceIndicators: {
+      enabled: false,
       defaultResource: (_ctx: Context) => OIDC_ISSUER,
-      enabled: true,
       getResource: (_ctx: Context, _client: unknown, _clientUri: string) => OIDC_ISSUER,
     },
   },
