@@ -67,25 +67,26 @@ const loadOrGenerateKeys = async () => {
  *
  * 解决冷启动问题，首次启动时自动创建默认 Client，后续检测到已有 Client 则跳过。
  *
- * 默认 Client 的 client_id 和 client_secret 从环境变量读取，
- * 未配置时使用内置默认值（仅适用于开发环境）。
+ * 默认 Client 配置为 Public Client（token_endpoint_auth_method: 'none'），
+ * 适用于 SPA（如 oidc-admin）通过 PKCE 完成授权码交换，无需 client_secret。
+ * 服务端客户端应创建单独的 Confidential Client 并配置 client_secret。
  */
 const seedDefaultClient = async () => {
   const clientCount = await prisma.oidcClient.count();
   if (clientCount > 0) return null;
 
   const clientId = process.env.DEFAULT_CLIENT_ID || 'default-client';
-  const clientSecret = process.env.DEFAULT_CLIENT_SECRET || 'default-secret';
 
   const clientData: ClientMetadata = {
     client_id: clientId,
-    client_secret: await bcrypt.hash(clientSecret, 10),
-    redirect_uris: [`${OIDC_ISSUER}/cb`],
+
+    redirect_uris: [`${OIDC_ISSUER}/callback`, 'http://localhost:8205/callback', 'http://localhost:8205/silent-callback'],
     client_name: 'Default Client',
-    post_logout_redirect_uris: [],
+    post_logout_redirect_uris: ['http://localhost:8205'],
     grant_types: ['authorization_code', 'refresh_token'],
     response_types: ['code'],
-    token_endpoint_auth_method: 'client_secret_post',
+    // Public Client：SPA 无法安全存储 client_secret，使用 PKCE 替代
+    token_endpoint_auth_method: 'none',
   };
 
   await prisma.oidcClient.create({
@@ -95,7 +96,7 @@ const seedDefaultClient = async () => {
     },
   });
 
-  return { clientId, clientSecret };
+  return { clientId };
 };
 
 /**
@@ -131,8 +132,8 @@ const initProvider = async () => {
     console.log(`
 🔑 Default Client seeded:
    - client_id:     ${seeded.clientId}
-   - client_secret: ${seeded.clientSecret}
-   ⚠️  Please change the default credentials in production!`);
+   - auth_method:   none (Public Client, PKCE)
+   ⚠️  For server-side clients, create a separate Confidential Client with client_secret!`);
   }
 
   return provider;
