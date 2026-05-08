@@ -1,7 +1,7 @@
 {
 	"name": "oidc-server",
 	"private": true,
-	"version": "0.0.0",
+	"version": "1.0.0",
 	"scripts": {
 		"dev": "dotenv -e .env/.env.development -- nodemon src/app.ts",
 		"p-init": "npx prisma init --datasource-provider mysql",
