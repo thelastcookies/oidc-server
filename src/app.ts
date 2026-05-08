@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import cors from '@koa/cors';
+import http from 'node:http';
 import bodyParser from '@koa/bodyparser';
 import ip from 'ip';
 import router from './router';
@@ -24,6 +24,11 @@ const PORT = process.env.PORT || 3000;
  *   Provider 的内部路由器直接处理，不经过我们的中间件
  * - 自定义路由（/oidc/interaction/* 等）：
  *   Provider 的路由器不匹配，调用 next()，我们的中间件接管
+ *
+ * CORS 处理：
+ *   由于 Provider 内部路由在自定义中间件之前执行，
+ *   通过 @koa/cors 添加的 CORS 头不会应用到 OIDC 内部路由。
+ *   因此使用 http 模块包装，在所有响应（包括 OIDC 内部路由）前添加 CORS 头。
  */
 const start = async () => {
   const provider = await initProvider();
@@ -31,14 +36,37 @@ const start = async () => {
   // 自定义中间件：添加在 Provider 内部中间件之后，仅处理非 OIDC 路由
   provider.use(responseMiddleware);
   provider.use(loggerMiddleware);
-  provider.use(cors());
+  // provider.use(cors());
   provider.use(bodyParser());
   provider.use(router.routes()).use(router.allowedMethods());
 
   // 屏蔽默认错误输出
   provider.silent = true;
 
-  provider.listen(PORT, () => console.log(`
+  const handler = provider.callback();
+
+  const server = http.createServer((req, res) => {
+    // 全局 CORS：在所有响应（包括 OIDC 内部路由）前添加 CORS 头
+    const origin = req.headers.origin;
+    if (origin) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
+    }
+
+    // 处理 CORS 预检请求
+    if (req.method === 'OPTIONS') {
+      res.writeHead(204);
+      res.end();
+      return;
+    }
+
+    // 委托给 oidc-provider 处理
+    handler(req, res);
+  });
+
+  server.listen(PORT, () => console.log(`
 🚀 Server ready at:
    - Local:   http://localhost:${PORT}
    - Network: http://${ipAddr}:${PORT}
