@@ -24,53 +24,38 @@ OIDC（OpenID Connect）是建立在 OAuth 2.0 之上的身份认证协议。OAu
 
 本项目使用 OIDC 最安全、最推荐的授权码模式（Authorization Code Flow），完整流程如下：
 
-```
-┌───────────┐                                ┌──────────────┐     ┌──────────────┐
-│ 用户浏览器  │                                │  SSO 认证中心 │     │  Vue 登录页   │
-└─────┬─────┘                                └──────┬───────┘     └──────┬───────┘
-      │                                             │                    │
-      │ ① 访问受保护页面                              │                    │
-      │─────────────────→ 子系统A                    │                    │
-      │                                             │                    │
-      │ ② 302 → /auth?client_id=A&redirect_uri=... │                    │
-      │────────────────────────────────────────────→│                    │
-      │                                             │                    │
-      │ ③ 无会话 → 302 → /oidc/interaction/:uid     │                    │
-      │─────────────────────────────────────────────────────────────────→│
-      │                                             │                    │
-      │ ④ 展示登录/注册页面                           │                    │
-      │←─────────────────────────────────────────────────────────────────│
-      │                                             │                    │
-      │ ⑤ 提交登录 POST /oidc/interaction/:uid/login │                    │
-      │─────────────────────────────────────────────────────────────────→│
-      │                                             │  验证凭证           │
-      │                                             │←───────────────────│
-      │                                             │                    │
-      │ ⑥ 返回 { redirect: "callback?code=xxx" }    │                    │
-      │←─────────────────────────────────────────────────────────────────│
-      │                                             │                    │
-      │ ⑦ 跳转到 callback?code=xxx                  │                    │
-      │─────────────────→ 子系统A                    │                    │
-      │                                             │                    │
-      │              ⑧ POST /token code=xxx        │                    │
-      │              子系统A ───────────────────────→│                    │
-      │                                             │                    │
-      │              ⑨ { access_token, id_token }  │                    │
-      │              子系统A ←───────────────────────│                    │
-      │                                             │                    │
-      │ ⑩ 登录成功                                  │                    │
-      │←───────────────── 子系统A                    │                    │
-      │                                             │                    │
-      │ ═══════════════ SSO 生效 ══════════════════════                    │
-      │                                             │                    │
-      │ ⑪ 访问子系统B                                │                    │
-      │─────────────────→ 子系统B                    │                    │
-      │                                             │                    │
-      │ ⑫ 302 → /auth?client_id=B                  │                    │
-      │────────────────────────────────────────────→│                    │
-      │                                             │                    │
-      │ ⑬ 有会话 → 直接签发授权码（无需再登录！）        │                    │
-      │←────────────────────────────────────────────│                    │
+```mermaid
+sequenceDiagram
+    actor B as 用户浏览器
+    participant SA as 子系统A
+    participant OP as SSO 认证中心
+    participant LP as 登录页
+    participant SB as 子系统B
+    Note over B, OP: 首次登录（子系统A）
+    B ->> SA: ① 访问受保护页面
+    SA -->> B: ② 302 → /auth?client_id=A&redirect_uri=...
+    B ->> OP: 发起授权请求
+    Note over B, LP: Interaction 阶段
+    OP -->> B: ③ 无会话 → 302 → /oidc/interaction/:uid
+    B ->> LP: 打开登录页
+    LP ->> OP: ④ 提交登录 POST /oidc/interaction/:uid/login
+    OP -->> B: ⑤ 303 Location: /auth/:resume_uid
+    B ->> OP: ⑥ 浏览器 GET /auth/:resume_uid
+    OP -->> B: ⑦ 302 Location: callback?code=xxx&state=xxx
+    Note over B, OP: 令牌换取与登录完成
+    B ->> SA: ⑧ 跳转到 callback?code=xxx
+    SA ->> OP: ⑨ POST /token code=xxx
+    OP -->> SA: ⑩ { access_token, id_token }
+    SA -->> B: ⑪ 登录成功
+    Note over B, SB: SSO 生效（子系统B 免登录）
+    B ->> SB: ⑫ 访问子系统B
+    SB -->> B: ⑬ 302 → /auth?client_id=B
+    B ->> OP: 发起授权请求（自动携带 Session Cookie）
+    alt 有会话
+        OP -->> B: ⑭ 有会话 → 直接签发授权码
+    else 无会话
+        OP -->> B: 重新进入 Interaction 阶段
+    end
 ```
 
 **步骤 ⑬ 就是 SSO 的核心**：用户在系统 A 登录后，认证中心已建立会话（Session Cookie），访问系统 B 时浏览器自动携带此 Cookie，认证中心识别到会话后直接签发授权码，用户无需再次输入密码。

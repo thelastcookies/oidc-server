@@ -107,6 +107,7 @@ const configuration = {
       // 登出后默认重定向地址，子系统可通过 post_logout_redirect_uri 参数覆盖
       postLogoutRedirectUri: process.env.POST_LOGOUT_REDIRECT_URI || 'https://localhost:8205',
     },
+    // todo: 目前未启用，待完善
     resourceIndicators: {
       enabled: false,
       defaultResource: (_ctx: Context) => OIDC_ISSUER,
