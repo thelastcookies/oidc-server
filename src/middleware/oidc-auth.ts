@@ -1,13 +1,13 @@
 /**
  * OIDC Access Token 认证中间件
  *
- * 替代原有的 JWT 认证中间件，使用 OIDC Provider 签发的 Access Token 保护管理接口。
+ * 使用 OIDC Provider 签发的 Access Token 保护管理接口。
  *
  * 验证流程：
  * 1. 从 Authorization 头提取 Bearer Token
  * 2. 通过 PrismaAdapter 在数据库中查找 AccessToken 记录
- * 3. 适配器的 find 方法已包含过期检查（惰性删除），过期令牌返回 undefined
- * 4. 从令牌数据中提取 accountId 作为用户标识
+ * 3. PrismaAdapter的 find 方法包含过期检查（惰性删除），过期令牌返回 undefined
+ * 4. 从令牌数据中提取 accountId，sessionUid 作为用户标识
  */
 import type { Context, Next } from 'koa';
 import PrismaAdapter from '../oidc/adapter.ts';
@@ -35,6 +35,8 @@ const oidcAuthMiddleware = async (ctx: Context, next: Next) => {
 
     ctx.state.user = {
       userId: parseInt(tokenData.accountId as string),
+      // 当前令牌关联的会话 UID，自助改密时用于保留当前会话
+      sessionUid: tokenData.sessionUid as string | undefined,
     };
 
     await next();

@@ -4,7 +4,7 @@
  * 定义 SSO 认证中心的行为规则，相当于"政策"文档。
  * 包括：支持的权限范围、用户声明、交互流程、Cookie 策略、令牌有效期等。
  */
-import type { Interaction, ErrorOut } from 'oidc-provider';
+import type { Interaction, ErrorOut, KoaContextWithOIDC } from 'oidc-provider';
 import type { Context } from 'koa';
 import prisma from '../prisma.ts';
 
@@ -33,7 +33,7 @@ const configuration = {
    */
   claims: {
     openid: ['sub'],          // sub = 用户唯一标识（Subject），OIDC 规范必须
-    profile: ['name', 'username'],
+    profile: ['name', 'username', 'roles'],  // roles = 用户角色编码数组，子系统据此做权限裁决
     email: [],
   },
 
@@ -78,7 +78,11 @@ const configuration = {
    * claims() 的返回值会写入 ID Token 的 payload 和 /me 的响应体
    */
   findAccount: async (_ctx: Context, id: string) => {
-    const user = await prisma.user.findUnique({ where: { id: parseInt(id) } });
+    const user = await prisma.user.findUnique({
+      where: { id: parseInt(id) },
+      // 关联查询用户角色，用于在 claims 中下发角色编码
+      include: { roles: { include: { role: true } } },
+    });
     if (!user) return undefined;
 
     return {
@@ -88,6 +92,8 @@ const configuration = {
           sub: id,
           name: user.username,
           username: user.username,
+          // 仅下发角色编码（如 ['admin', 'user']），控制令牌体积
+          roles: user.roles.map((ur) => ur.role.code),
         };
       },
     };
@@ -106,6 +112,22 @@ const configuration = {
       enabled: true,
       // 登出后默认重定向地址，子系统可通过 post_logout_redirect_uri 参数覆盖
       postLogoutRedirectUri: process.env.POST_LOGOUT_REDIRECT_URI || 'https://localhost:8205',
+      /**
+       * 自定义登出确认页
+       *
+       * 请求携带已验证的 id_token_hint 时自动提交确认表单，实现无感登出；
+       * 未携带时保留手动确认按钮，防止伪造请求（logout CSRF）随意清除用户会话。
+       */
+      logoutSource: async (ctx: KoaContextWithOIDC, form: string) => {
+        ctx.type = 'html';
+        if (ctx.oidc.entities.IdTokenHint) {
+          // 无感登出：页面加载后自动提交 end_session 确认表单
+          ctx.body = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><title>正在登出...</title></head><body>${form}<script>window.addEventListener('load', () => document.getElementById('op.logoutForm').submit());</script></body></html>`;
+        } else {
+          // 兜底确认页：无 id_token_hint 的登出请求需用户手动确认
+          ctx.body = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><title>确认登出</title></head><body>${form}<button onclick="document.getElementById('op.logoutForm').submit()">确认登出</button></body></html>`;
+        }
+      },
     },
     // todo: 目前未启用，待完善
     resourceIndicators: {

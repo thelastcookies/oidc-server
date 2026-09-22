@@ -162,6 +162,12 @@ export const register = async (username: string, password: string): Promise<User
     data: { username, password: hashedPassword },
   });
 
+  // 注册用户绑定默认角色 user（角色不存在时跳过，不影响注册流程）
+  const defaultRole = await prisma.role.findUnique({ where: { code: 'user' } });
+  if (defaultRole) {
+    await prisma.userRole.create({ data: { userId: user.id, roleId: defaultRole.id } });
+  }
+
   return { id: user.id, username: user.username };
 };
 
@@ -180,6 +186,11 @@ export const verifyUserCredentials = async (username: string, password: string):
   const isValid = await bcrypt.compare(password, user.password);
   if (!isValid) {
     throw new Error('用户名或密码错误');
+  }
+
+  // 停用账号不允许登录（在密码验证之后判断，避免泄露账号状态）
+  if (!user.enabled) {
+    throw new Error('账号已被停用');
   }
 
   return { id: user.id, username: user.username };
