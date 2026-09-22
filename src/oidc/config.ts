@@ -119,13 +119,14 @@ const configuration = {
        * 未携带时保留手动确认按钮，防止伪造请求（logout CSRF）随意清除用户会话。
        */
       logoutSource: async (ctx: KoaContextWithOIDC, form: string) => {
+        const confirmForm = form.replace('</form>', '<input type="hidden" name="logout" value="yes"/></form>');
         ctx.type = 'html';
         if (ctx.oidc.entities.IdTokenHint) {
           // 无感登出：页面加载后自动提交 end_session 确认表单
-          ctx.body = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><title>正在登出...</title></head><body>${form}<script>window.addEventListener('load', () => document.getElementById('op.logoutForm').submit());</script></body></html>`;
+          ctx.body = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><title>正在登出...</title></head><body>${confirmForm}<script>window.addEventListener('load', () => document.getElementById('op.logoutForm').submit());</script></body></html>`;
         } else {
           // 兜底确认页：无 id_token_hint 的登出请求需用户手动确认
-          ctx.body = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><title>确认登出</title></head><body>${form}<button onclick="document.getElementById('op.logoutForm').submit()">确认登出</button></body></html>`;
+          ctx.body = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><title>确认登出</title></head><body>${confirmForm}<button onclick="document.getElementById('op.logoutForm').submit()">确认登出</button></body></html>`;
         }
       },
     },
