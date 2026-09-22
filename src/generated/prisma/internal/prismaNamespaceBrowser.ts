@@ -50,6 +50,8 @@ export const AnyNull = runtime.objectEnumValues.instances.AnyNull
 
 export const ModelName = {
   User: 'User',
+  Role: 'Role',
+  UserRole: 'UserRole',
   OidcClient: 'OidcClient',
   OidcPayload: 'OidcPayload',
   OidcKey: 'OidcKey'
@@ -75,11 +77,32 @@ export const UserScalarFieldEnum = {
   id: 'id',
   username: 'username',
   password: 'password',
+  enabled: 'enabled',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const RoleScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  name: 'name',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RoleScalarFieldEnum = (typeof RoleScalarFieldEnum)[keyof typeof RoleScalarFieldEnum]
+
+
+export const UserRoleScalarFieldEnum = {
+  userId: 'userId',
+  roleId: 'roleId'
+} as const
+
+export type UserRoleScalarFieldEnum = (typeof UserRoleScalarFieldEnum)[keyof typeof UserRoleScalarFieldEnum]
 
 
 export const OidcClientScalarFieldEnum = {
@@ -133,20 +156,29 @@ export const UserOrderByRelevanceFieldEnum = {
 export type UserOrderByRelevanceFieldEnum = (typeof UserOrderByRelevanceFieldEnum)[keyof typeof UserOrderByRelevanceFieldEnum]
 
 
-export const OidcClientOrderByRelevanceFieldEnum = {
-  id: 'id',
-  data: 'data'
-} as const
-
-export type OidcClientOrderByRelevanceFieldEnum = (typeof OidcClientOrderByRelevanceFieldEnum)[keyof typeof OidcClientOrderByRelevanceFieldEnum]
-
-
 export const NullsOrder = {
   first: 'first',
   last: 'last'
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const RoleOrderByRelevanceFieldEnum = {
+  code: 'code',
+  name: 'name',
+  remark: 'remark'
+} as const
+
+export type RoleOrderByRelevanceFieldEnum = (typeof RoleOrderByRelevanceFieldEnum)[keyof typeof RoleOrderByRelevanceFieldEnum]
+
+
+export const OidcClientOrderByRelevanceFieldEnum = {
+  id: 'id',
+  data: 'data'
+} as const
+
+export type OidcClientOrderByRelevanceFieldEnum = (typeof OidcClientOrderByRelevanceFieldEnum)[keyof typeof OidcClientOrderByRelevanceFieldEnum]
 
 
 export const OidcPayloadOrderByRelevanceFieldEnum = {

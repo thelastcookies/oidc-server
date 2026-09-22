@@ -9,6 +9,8 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/User.ts'
+export type * from './models/Role.ts'
+export type * from './models/UserRole.ts'
 export type * from './models/OidcClient.ts'
 export type * from './models/OidcPayload.ts'
 export type * from './models/OidcKey.ts'

@@ -11,6 +11,7 @@
 		"migrate": "dotenv -e .env/.env.development -- npx prisma migrate dev dotenv npx prisma migrate status",
 		"generate": "dotenv -e .env/.env.development -- npx prisma generate",
 		"studio": "dotenv -e .env/.env.development -- npx prisma studio --browser chrome --port 5555",
+		"seed": "dotenv -e .env/.env.development -- tsx prisma/seed.ts",
 		"build": "pnpm build:docker:tar",
 		"build:push": "pnpm build:docker:push",
 		"build:esbuild": "tsx ./esbuild.config.ts",

@@ -14,10 +14,39 @@ model User {
   id        Int      @id @default(autoincrement())
   username  String   @unique @db.VarChar(50)
   password  String   @db.VarChar(255)
+  enabled   Boolean  @default(true)
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 
+  roles UserRole[]
+
   @@map("user")
+}
+
+model Role {
+  id        Int      @id @default(autoincrement())
+  code      String   @unique @db.VarChar(50)
+  // 展示名称：如 "管理员"
+  name      String   @db.VarChar(50)
+  remark    String?  @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  users UserRole[]
+
+  @@map("role")
+}
+
+model UserRole {
+  userId Int @map("user_id")
+  roleId Int @map("role_id")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@index([roleId])
+  @@map("user_role")
 }
 
 // OIDC 客户端应用：每个接入 SSO 的子系统都需要注册

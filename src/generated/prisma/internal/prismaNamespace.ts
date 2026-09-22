@@ -391,6 +391,8 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   User: 'User',
+  Role: 'Role',
+  UserRole: 'UserRole',
   OidcClient: 'OidcClient',
   OidcPayload: 'OidcPayload',
   OidcKey: 'OidcKey'
@@ -409,7 +411,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "oidcClient" | "oidcPayload" | "oidcKey"
+    modelProps: "user" | "role" | "userRole" | "oidcClient" | "oidcPayload" | "oidcKey"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -476,6 +478,138 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.UserCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.UserCountAggregateOutputType> | number
+        }
+      }
+    }
+    Role: {
+      payload: Prisma.$RolePayload<ExtArgs>
+      fields: Prisma.RoleFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RoleFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RolePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RoleFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RolePayload>
+        }
+        findFirst: {
+          args: Prisma.RoleFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RolePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RoleFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RolePayload>
+        }
+        findMany: {
+          args: Prisma.RoleFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RolePayload>[]
+        }
+        create: {
+          args: Prisma.RoleCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RolePayload>
+        }
+        createMany: {
+          args: Prisma.RoleCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.RoleDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RolePayload>
+        }
+        update: {
+          args: Prisma.RoleUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RolePayload>
+        }
+        deleteMany: {
+          args: Prisma.RoleDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RoleUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.RoleUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RolePayload>
+        }
+        aggregate: {
+          args: Prisma.RoleAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRole>
+        }
+        groupBy: {
+          args: Prisma.RoleGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RoleGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RoleCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RoleCountAggregateOutputType> | number
+        }
+      }
+    }
+    UserRole: {
+      payload: Prisma.$UserRolePayload<ExtArgs>
+      fields: Prisma.UserRoleFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.UserRoleFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserRolePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.UserRoleFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserRolePayload>
+        }
+        findFirst: {
+          args: Prisma.UserRoleFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserRolePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.UserRoleFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserRolePayload>
+        }
+        findMany: {
+          args: Prisma.UserRoleFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserRolePayload>[]
+        }
+        create: {
+          args: Prisma.UserRoleCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserRolePayload>
+        }
+        createMany: {
+          args: Prisma.UserRoleCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.UserRoleDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserRolePayload>
+        }
+        update: {
+          args: Prisma.UserRoleUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserRolePayload>
+        }
+        deleteMany: {
+          args: Prisma.UserRoleDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.UserRoleUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.UserRoleUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserRolePayload>
+        }
+        aggregate: {
+          args: Prisma.UserRoleAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateUserRole>
+        }
+        groupBy: {
+          args: Prisma.UserRoleGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UserRoleGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.UserRoleCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UserRoleCountAggregateOutputType> | number
         }
       }
     }
@@ -720,11 +854,32 @@ export const UserScalarFieldEnum = {
   id: 'id',
   username: 'username',
   password: 'password',
+  enabled: 'enabled',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const RoleScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  name: 'name',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RoleScalarFieldEnum = (typeof RoleScalarFieldEnum)[keyof typeof RoleScalarFieldEnum]
+
+
+export const UserRoleScalarFieldEnum = {
+  userId: 'userId',
+  roleId: 'roleId'
+} as const
+
+export type UserRoleScalarFieldEnum = (typeof UserRoleScalarFieldEnum)[keyof typeof UserRoleScalarFieldEnum]
 
 
 export const OidcClientScalarFieldEnum = {
@@ -778,20 +933,29 @@ export const UserOrderByRelevanceFieldEnum = {
 export type UserOrderByRelevanceFieldEnum = (typeof UserOrderByRelevanceFieldEnum)[keyof typeof UserOrderByRelevanceFieldEnum]
 
 
-export const OidcClientOrderByRelevanceFieldEnum = {
-  id: 'id',
-  data: 'data'
-} as const
-
-export type OidcClientOrderByRelevanceFieldEnum = (typeof OidcClientOrderByRelevanceFieldEnum)[keyof typeof OidcClientOrderByRelevanceFieldEnum]
-
-
 export const NullsOrder = {
   first: 'first',
   last: 'last'
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const RoleOrderByRelevanceFieldEnum = {
+  code: 'code',
+  name: 'name',
+  remark: 'remark'
+} as const
+
+export type RoleOrderByRelevanceFieldEnum = (typeof RoleOrderByRelevanceFieldEnum)[keyof typeof RoleOrderByRelevanceFieldEnum]
+
+
+export const OidcClientOrderByRelevanceFieldEnum = {
+  id: 'id',
+  data: 'data'
+} as const
+
+export type OidcClientOrderByRelevanceFieldEnum = (typeof OidcClientOrderByRelevanceFieldEnum)[keyof typeof OidcClientOrderByRelevanceFieldEnum]
 
 
 export const OidcPayloadOrderByRelevanceFieldEnum = {
@@ -831,6 +995,13 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
  * Reference to a field of type 'String'
  */
 export type StringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'String'>
+    
+
+
+/**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 
@@ -935,6 +1106,8 @@ export interface PrismaClientOptions {
 }
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
+  role?: Prisma.RoleOmit
+  userRole?: Prisma.UserRoleOmit
   oidcClient?: Prisma.OidcClientOmit
   oidcPayload?: Prisma.OidcPayloadOmit
   oidcKey?: Prisma.OidcKeyOmit
