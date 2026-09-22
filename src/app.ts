@@ -1,5 +1,8 @@
 import dotenv from 'dotenv';
+import fs from 'node:fs';
 import http from 'node:http';
+import type { ServerOptions } from 'node:https';
+import https from 'node:https';
 import bodyParser from '@koa/bodyparser';
 import ip from 'ip';
 import router from './router';
@@ -13,6 +16,22 @@ dotenv.config({
 
 const ipAddr = ip.address();
 const PORT = process.env.PORT || 3000;
+
+/**
+ * 加载 HTTPS 证书配置
+ *
+ * 通过 mkcert 生成本地受信证书后，配置 SSL_KEY_PATH / SSL_CERT_PATH 即启用 HTTPS。
+ * 未配置时保持 HTTP。
+ */
+const loadHttpsOptions = (): ServerOptions | null => {
+  const { SSL_KEY_PATH, SSL_CERT_PATH } = process.env;
+  if (!SSL_KEY_PATH || !SSL_CERT_PATH) return null;
+
+  return {
+    key: fs.readFileSync(SSL_KEY_PATH),
+    cert: fs.readFileSync(SSL_CERT_PATH),
+  };
+};
 
 /**
  * 启动认证服务
@@ -45,7 +64,8 @@ const start = async () => {
 
   const handler = provider.callback();
 
-  const server = http.createServer((req, res) => {
+  // 全局 CORS 处理，委托给 oidc-provider 的请求处理器
+  const requestHandler = (req: http.IncomingMessage, res: http.ServerResponse) => {
     // 全局 CORS：在所有响应（包括 OIDC 内部路由）前添加 CORS 头
     const origin = req.headers.origin;
     if (origin) {
@@ -64,13 +84,24 @@ const start = async () => {
 
     // 委托给 oidc-provider 处理
     handler(req, res);
-  });
+  };
+
+  // 配置了证书路径时启用 HTTPS
+  const httpsOptions = loadHttpsOptions();
+  const protocol = httpsOptions ? 'https' : 'http';
+  const server = httpsOptions
+    ? https.createServer(httpsOptions, requestHandler)
+    : http.createServer(requestHandler);
 
   server.listen(PORT, () => console.log(`
 🚀 Server ready at:
-   - Local:   http://localhost:${PORT}
-   - Network: http://${ipAddr}:${PORT}
-📖 OIDC Discovery: http://localhost:${PORT}/.well-known/openid-configuration`));
+   - Local:   ${protocol}://localhost:${PORT}
+   - Network: ${protocol}://${ipAddr}:${PORT}
+📖 OIDC Discovery:
+    - Local:   ${protocol}://localhost:${PORT}/.well-known/openid-configuration
+    - Network: ${protocol}://${ipAddr}:${PORT}/.well-known/openid-configuration`,
+    ),
+  );
 };
 
 start().catch((err) => {

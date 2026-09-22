@@ -62,7 +62,7 @@ export const getInteraction = async (ctx: Context) => {
     const details: Interaction = await provider.interactionDetails(ctx.req, ctx.res);
     const { uid, prompt, params } = details;
 
-    const loginPageUrl = process.env.SSO_LOGIN_URL || 'http://localhost:8191/login';
+    const loginPageUrl = process.env.SSO_LOGIN_URL || 'https://localhost:8191/login';
     const redirectUrl = new URL(loginPageUrl);
     redirectUrl.searchParams.set('uid', uid);
     redirectUrl.searchParams.set('prompt', prompt.name);

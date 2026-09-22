@@ -254,7 +254,7 @@ RSA 密钥管理是核心——密钥持久化到数据库，服务重启后不�
 
 ### 概述
 
-认证服务不再渲染登录页面，而是通过 302 重定向将用户引导至 Vue 登录页，将交互上下文（uid、client_id 等）作为 URL 参数传递。Vue 登录页根据这些参数调用认证服务的交互接口完成登录/注册。
+认证服务通过 302 重定向将用户引导至登录页，将交互上下文（uid、client_id 等）作为 URL 参数传递。Vue 登录页根据这些参数调用认证服务的交互接口完成登录/注册。
 
 ### 重定向 URL 格式
 
@@ -293,7 +293,7 @@ const errorMsg = ref('');
 const isRegisterMode = ref(false);
 
 // 认证服务地址
-const OIDC_SERVER = 'http://localhost:8190';
+const OIDC_SERVER = 'https://localhost:8190';
 
 const submitLogin = async () => {
   errorMsg.value = '';
@@ -471,7 +471,7 @@ Content-Type: application/json
 import { UserManager } from 'oidc-client-ts';
 
 const userManager = new UserManager({
-  authority: 'http://localhost:8190',           // 认证服务地址
+  authority: 'https://localhost:8190',           // 认证服务地址
   client_id: 'my-app',                          // 注册的 client_id
   redirect_uri: 'https://my-app.com/callback',  // 回调地址
   post_logout_redirect_uri: 'https://my-app.com',
@@ -507,7 +507,7 @@ const login = () => {
     response_type: 'code',
     scope: 'openid profile offline_access',
   });
-  window.location.href = `http://localhost:8190/auth?${params}`;
+  window.location.href = `https://localhost:8190/auth?${params}`;
 };
 
 // 发起登出
@@ -516,7 +516,7 @@ const logout = (idToken: string) => {
     id_token_hint: idToken,
     post_logout_redirect_uri: 'https://my-app.com',
   });
-  window.location.href = `http://localhost:8190/session/end?${params}`;
+  window.location.href = `https://localhost:8190/session/end?${params}`;
 };
 ```
 
@@ -527,7 +527,7 @@ const logout = (idToken: string) => {
 app.get('/callback', async (req, res) => {
   const { code } = req.query;
 
-  const tokenResponse = await fetch('http://localhost:8190/token', {
+  const tokenResponse = await fetch('https://localhost:8190/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
@@ -549,7 +549,7 @@ app.get('/callback', async (req, res) => {
   // }
 
   // 用 access_token 获取用户信息
-  const userInfo = await fetch('http://localhost:8190/me', {
+  const userInfo = await fetch('https://localhost:8190/me', {
     headers: { Authorization: `Bearer ${tokens.access_token}` },
   });
   // userInfo = { sub: "1", name: "admin", username: "admin" }
@@ -563,7 +563,7 @@ app.get('/callback', async (req, res) => {
 Access Token 过期后，用 Refresh Token 续期，无需用户重新登录：
 
 ```typescript
-const refreshResponse = await fetch('http://localhost:8190/token', {
+const refreshResponse = await fetch('https://localhost:8190/token', {
   method: 'POST',
   headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
   body: new URLSearchParams({
@@ -589,14 +589,14 @@ const newTokens = await refreshResponse.json();
 
 ## 环境变量
 
-| 变量 | 说明 | 默认值 |
-|------|------|--------|
-| `PORT` | 服务端口 | `3000` |
-| `DATABASE_URL` | MySQL 连接字符串 | — |
-| `OIDC_ISSUER` | OIDC Issuer URL | `http://localhost:8190` |
-| `SSO_LOGIN_URL` | Vue 登录页 URL | `http://localhost:5173/login` |
+| 变量 | 说明 | 默认值                                  |
+|------|------|--------------------------------------|
+| `PORT` | 服务端口 | `8190`                               |
+| `DATABASE_URL` | MySQL 连接字符串 | —                                    |
+| `OIDC_ISSUER` | OIDC Issuer URL | `https://localhost:8190`              |
+| `SSO_LOGIN_URL` | Vue 登录页 URL | `https://localhost:8191`         |
 | `COOKIE_KEYS` | Cookie 签名密钥（逗号分隔） | `oidc-cookie-key-1,oidc-cookie-key-2` |
-| `POST_LOGOUT_REDIRECT_URI` | 登出后默认重定向地址 | `http://localhost:3000` |
+| `POST_LOGOUT_REDIRECT_URI` | 登出后默认重定向地址 | `https://localhost:8191`              |
 
 ## 开发
 

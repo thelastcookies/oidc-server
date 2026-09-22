@@ -8,7 +8,7 @@ import type { Interaction, ErrorOut } from 'oidc-provider';
 import type { Context } from 'koa';
 import prisma from '../prisma.ts';
 
-const OIDC_ISSUER = process.env.OIDC_ISSUER || 'http://localhost:8190';
+const OIDC_ISSUER = process.env.OIDC_ISSUER || 'https://localhost:8190';
 
 /**
  * OIDC Provider 配置
@@ -105,7 +105,7 @@ const configuration = {
     rpInitiatedLogout: {
       enabled: true,
       // 登出后默认重定向地址，子系统可通过 post_logout_redirect_uri 参数覆盖
-      postLogoutRedirectUri: process.env.POST_LOGOUT_REDIRECT_URI || 'http://localhost:3000',
+      postLogoutRedirectUri: process.env.POST_LOGOUT_REDIRECT_URI || 'https://localhost:8205',
     },
     resourceIndicators: {
       enabled: false,

@@ -128,6 +128,9 @@ dist
 # prisma
 /prisma/migrations
 
+# dev https 证书（mkcert 生成）
+/certs
+
 # upload files
 /repo
 

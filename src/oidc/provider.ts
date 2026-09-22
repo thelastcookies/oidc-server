@@ -80,9 +80,9 @@ const seedDefaultClient = async () => {
   const clientData: ClientMetadata = {
     client_id: clientId,
 
-    redirect_uris: [`${OIDC_ISSUER}/callback`, 'http://localhost:8205/callback', 'http://localhost:8205/silent-callback'],
+    redirect_uris: [`${OIDC_ISSUER}/callback`, 'https://localhost:8205/callback', 'https://localhost:8205/silent-callback'],
     client_name: 'Default Client',
-    post_logout_redirect_uris: ['http://localhost:8205'],
+    post_logout_redirect_uris: ['https://localhost:8205'],
     grant_types: ['authorization_code', 'refresh_token'],
     response_types: ['code'],
     // Public Client：SPA 无法安全存储 client_secret，使用 PKCE 替代
