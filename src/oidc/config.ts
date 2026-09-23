@@ -34,7 +34,7 @@ const configuration = {
   claims: {
     // sub：用户唯一标识（Subject），OIDC 规范必须
     openid: ['sub'],
-    profile: ['name', 'username', 'realName', 'roles'],
+    profile: ['name'],
     email: [],
   },
 
@@ -81,8 +81,6 @@ const configuration = {
   findAccount: async (_ctx: Context, id: string) => {
     const user = await prisma.user.findUnique({
       where: { id: parseInt(id) },
-      // 关联查询用户角色，用于在 claims 中下发角色编码
-      include: { roles: { include: { role: true } } },
     });
     if (!user) return undefined;
 
@@ -92,10 +90,6 @@ const configuration = {
         return {
           sub: id,
           name: user.realName ?? user.username,
-          username: user.username,
-          ...(user.realName ? { realName: user.realName } : {}),
-          // 仅下发角色编码（如 ['admin', 'user']），控制令牌体积
-          roles: user.roles.map((ur) => ur.role.code),
         };
       },
     };

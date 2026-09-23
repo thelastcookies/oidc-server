@@ -101,7 +101,7 @@ export interface ChangePasswordRequest {
   newPassword: string;
 }
 
-/** 当前用户信息（含角色编码数组，与 claims 中的 roles 一致） */
+/** 当前用户信息（含角色编码数组） */
 export interface CurrentUserInfo {
   id: number;
   username: string;

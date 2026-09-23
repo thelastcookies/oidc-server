@@ -45,13 +45,15 @@ router.post('/client', oidcAuthMiddleware, requireAdmin, controller.createClient
 router.put('/client/:clientId', oidcAuthMiddleware, requireAdmin, controller.updateClient);
 router.delete('/client/:clientId', oidcAuthMiddleware, requireAdmin, controller.deleteClient);
 
-// 用户/角色管理接口：需 OIDC Access Token 认证 + admin 角色
+// 用户管理接口：需 OIDC Access Token 认证 + admin 角色
 router.get('/admin/users', oidcAuthMiddleware, requireAdmin, adminController.getUsers);
 router.get('/admin/users/:id', oidcAuthMiddleware, requireAdmin, adminController.getUser);
 router.post('/admin/users', oidcAuthMiddleware, requireAdmin, adminController.createUser);
 router.put('/admin/users/:id', oidcAuthMiddleware, requireAdmin, adminController.updateUser);
 router.put('/admin/users/:id/password', oidcAuthMiddleware, requireAdmin, adminController.resetUserPassword);
 router.delete('/admin/users/:id', oidcAuthMiddleware, requireAdmin, adminController.deleteUser);
+
+// 角色管理接口：需 OIDC Access Token 认证 + admin 角色
 router.get('/admin/roles', oidcAuthMiddleware, requireAdmin, adminController.getRoles);
 router.post('/admin/roles', oidcAuthMiddleware, requireAdmin, adminController.createRole);
 router.put('/admin/roles/:id', oidcAuthMiddleware, requireAdmin, adminController.updateRole);

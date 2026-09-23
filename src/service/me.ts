@@ -9,7 +9,7 @@ import bcrypt from 'bcryptjs';
 import { revokeUserSessions } from './session.ts';
 import type { CurrentUserInfo } from '../types/admin.d.ts';
 
-/** 获取当前用户信息（角色编码数组与 claims 中的 roles 一致） */
+/** 获取当前用户信息 */
 export const getCurrentUser = async (userId: number): Promise<CurrentUserInfo> => {
   const user = await prisma.user.findUnique({
     where: { id: userId },
