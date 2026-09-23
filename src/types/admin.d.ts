@@ -43,6 +43,7 @@ export interface RoleInfo extends RoleBrief {
 /** 创建用户请求体 */
 export interface CreateUserRequest {
   username: string;
+  realName?: string;
   password: string;
   // 初始角色，缺省不分配
   roleIds?: number[];
@@ -52,6 +53,7 @@ export interface CreateUserRequest {
 
 /** 更新用户请求体（username 不允许修改） */
 export interface UpdateUserRequest {
+  realName?: string;
   enabled?: boolean;
   // 传入则整体替换角色绑定
   roleIds?: number[];
@@ -66,6 +68,7 @@ export interface ResetPasswordRequest {
 export interface UserInfo {
   id: number;
   username: string;
+  realName: string | null;
   enabled: boolean;
   roles: RoleBrief[];
   createdAt: Date;
@@ -102,5 +105,6 @@ export interface ChangePasswordRequest {
 export interface CurrentUserInfo {
   id: number;
   username: string;
+  realName: string | null;
   roles: string[];
 }

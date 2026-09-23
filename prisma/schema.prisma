@@ -13,6 +13,7 @@ datasource db {
 model User {
   id        Int      @id @default(autoincrement())
   username  String   @unique @db.VarChar(50)
+  realName  String?  @map("real_name") @db.VarChar(50)
   password  String   @db.VarChar(255)
   enabled   Boolean  @default(true)
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)

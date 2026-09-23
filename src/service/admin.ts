@@ -29,6 +29,7 @@ type UserWithRoles = Prisma.UserGetPayload<{ include: { roles: { include: { role
 const toUserInfo = (user: UserWithRoles): UserInfo => ({
   id: user.id,
   username: user.username,
+  realName: user.realName,
   enabled: user.enabled,
   roles: user.roles.map((ur) => ({ id: ur.role.id, code: ur.role.code, name: ur.role.name })),
   createdAt: user.createdAt,
@@ -93,6 +94,7 @@ export const createUser = async (data: CreateUserRequest): Promise<UserInfo> => 
   const user = await prisma.user.create({
     data: {
       username: data.username,
+      realName: data.realName?.trim() || null,
       password: await bcrypt.hash(data.password, 10),
       enabled: data.enabled ?? true,
       // 写入角色绑定
@@ -122,6 +124,8 @@ export const updateUser = async (id: number, updates: UpdateUserRequest): Promis
     where: { id },
     data: {
       enabled: updates.enabled,
+      // 传入 realName 时更新（去空格，空字符串视为清除为 null），未传则保持不变
+      ...(updates.realName !== undefined ? { realName: updates.realName.trim() || null } : {}),
       // 传入 roleIds 时整体替换角色绑定（先删后建，原子操作）
       ...(updates.roleIds
         ? { roles: { deleteMany: {}, create: updates.roleIds.map((roleId) => ({ roleId })) } }

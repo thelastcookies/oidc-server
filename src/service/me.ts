@@ -22,6 +22,7 @@ export const getCurrentUser = async (userId: number): Promise<CurrentUserInfo> =
   return {
     id: user.id,
     username: user.username,
+    realName: user.realName,
     roles: user.roles.map((ur) => ur.role.code),
   };
 };

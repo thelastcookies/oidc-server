@@ -32,8 +32,9 @@ const configuration = {
    * 子系统请求 scope 时，oidc-provider 根据此映射决定 ID Token 和 UserInfo 中包含哪些字段
    */
   claims: {
-    openid: ['sub'],          // sub = 用户唯一标识（Subject），OIDC 规范必须
-    profile: ['name', 'username', 'roles'],  // roles = 用户角色编码数组，子系统据此做权限裁决
+    // sub：用户唯一标识（Subject），OIDC 规范必须
+    openid: ['sub'],
+    profile: ['name', 'username', 'realName', 'roles'],
     email: [],
   },
 
@@ -90,8 +91,9 @@ const configuration = {
       async claims() {
         return {
           sub: id,
-          name: user.username,
+          name: user.realName ?? user.username,
           username: user.username,
+          ...(user.realName ? { realName: user.realName } : {}),
           // 仅下发角色编码（如 ['admin', 'user']），控制令牌体积
           roles: user.roles.map((ur) => ur.role.code),
         };
