@@ -79,8 +79,8 @@ const seedDefaultClient = async () => {
 
   const clientData: ClientMetadata = {
     client_id: clientId,
-
-    redirect_uris: [`${OIDC_ISSUER}/callback`, 'https://localhost:8205/callback', 'https://localhost:8205/silent-callback'],
+    // refresh_token grant
+    redirect_uris: [`${OIDC_ISSUER}/callback`, 'https://localhost:8205/callback'],
     client_name: 'Default Client',
     post_logout_redirect_uris: ['https://localhost:8205'],
     grant_types: ['authorization_code', 'refresh_token'],
