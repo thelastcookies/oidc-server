@@ -6,13 +6,12 @@
  * 使用 RS256 非对称加密，认证中心用私钥签名，子系统只需公钥验证
  */
 import { generateKeyPairSync } from 'node:crypto';
+import type { ClientMetadata, JWK } from 'oidc-provider';
 import Provider from 'oidc-provider';
 import type { Context, Next } from 'koa';
-import type { JWK, ClientMetadata } from 'oidc-provider';
 import PrismaAdapter from './adapter.ts';
 import configuration, { OIDC_ISSUER } from './config.ts';
-import prisma from '../prisma.ts';
-import bcrypt from 'bcryptjs';
+import { prisma } from '../prisma.ts';
 
 /**
  * 生成 RSA 密钥对并导出为 JWK 格式

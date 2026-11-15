@@ -1,4 +1,3 @@
-import dotenv from 'dotenv';
 import fs from 'node:fs';
 import http from 'node:http';
 import type { ServerOptions } from 'node:https';
@@ -9,10 +8,6 @@ import router from './router';
 import loggerMiddleware from './middleware/logger.ts';
 import responseMiddleware from './middleware/response.ts';
 import initProvider from './oidc/provider.ts';
-
-dotenv.config({
-  path: ['.env/.env', '.env/.env.development', '.env/.env.production'],
-});
 
 const ipAddr = ip.address();
 const PORT = process.env.PORT || 3000;

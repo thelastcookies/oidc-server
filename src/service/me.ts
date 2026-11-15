@@ -4,7 +4,7 @@
  * 身份认定：请求方携带用户自己的 OIDC Access Token（Bearer），
  * 服务端从令牌记录中解析用户，无需再传 username。
  */
-import prisma from '../prisma.ts';
+import { prisma } from '../prisma.ts';
 import bcrypt from 'bcryptjs';
 import { revokeUserSessions } from './session.ts';
 import type { CurrentUserInfo } from '../types/admin.d.ts';

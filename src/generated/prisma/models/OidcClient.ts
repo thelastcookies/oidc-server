@@ -8,7 +8,7 @@
  *
  * 🟢 You can import this file directly.
  */
-import type * as runtime from "@prisma/client/runtime/library"
+import type * as runtime from "@prisma/client/runtime/client"
 import type * as $Enums from "../enums.ts"
 import type * as Prisma from "../internal/prismaNamespace.ts"
 
@@ -151,7 +151,7 @@ export type OidcClientGroupByOutputType = {
   _max: OidcClientMaxAggregateOutputType | null
 }
 
-type GetOidcClientGroupByPayload<T extends OidcClientGroupByArgs> = Prisma.PrismaPromise<
+export type GetOidcClientGroupByPayload<T extends OidcClientGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<OidcClientGroupByOutputType, T['by']> &
       {
@@ -867,6 +867,11 @@ export type OidcClientFindManyArgs<ExtArgs extends runtime.Types.Extensions.Inte
    * Skip the first `n` OidcClients.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of OidcClients.
+   */
   distinct?: Prisma.OidcClientScalarFieldEnum | Prisma.OidcClientScalarFieldEnum[]
 }
 

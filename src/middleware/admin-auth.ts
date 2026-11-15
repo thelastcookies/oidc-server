@@ -5,7 +5,7 @@
  * 每次请求实时查库校验 admin 角色，角色变更立即生效（不依赖令牌内容）。
  */
 import type { Context, Next } from 'koa';
-import prisma from '../prisma.ts';
+import { prisma } from '../prisma.ts';
 
 const requireAdmin = async (ctx: Context, next: Next) => {
   const userId = (ctx.state.user as { userId?: number } | undefined)?.userId;

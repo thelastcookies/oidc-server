@@ -4,7 +4,7 @@
  * 权限模型：IdP 管理用户 + 全局角色（多对多），claims 下发角色编码，
  * 各接入子系统自行完成"角色 → 细粒度权限"的映射与裁决。
  */
-import prisma from '../prisma.ts';
+import { prisma } from '../prisma.ts';
 import bcrypt from 'bcryptjs';
 import { revokeUserSessions } from './session.ts';
 import type { Prisma } from '../generated/prisma/client.ts';

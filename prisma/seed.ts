@@ -8,7 +8,7 @@
  * 脚本可重复执行（幂等）：已存在的角色/账号会跳过，不做覆盖。
  */
 import bcrypt from 'bcryptjs';
-import prisma from '../src/prisma.ts';
+import { prisma } from '../src/prisma.ts';
 
 /** 内置管理员角色编码 */
 const ADMIN_ROLE_CODE = 'admin';

@@ -5,7 +5,7 @@
  * （Session / RefreshToken 的 payload 均包含 "accountId":"<userId>"），
  * 因此通过字符串包含匹配定位目标数据，再逐类批量删除。
  */
-import prisma from '../prisma.ts';
+import { prisma } from '../prisma.ts';
 
 /**
  * 撤销指定用户的所有 OIDC 会话与刷新令牌

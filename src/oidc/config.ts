@@ -4,9 +4,9 @@
  * 定义 SSO 认证中心的行为规则，相当于"政策"文档。
  * 包括：支持的权限范围、用户声明、交互流程、Cookie 策略、令牌有效期等。
  */
-import type { Interaction, ErrorOut, KoaContextWithOIDC } from 'oidc-provider';
+import type { ErrorOut, Interaction, KoaContextWithOIDC } from 'oidc-provider';
 import type { Context } from 'koa';
-import prisma from '../prisma.ts';
+import { prisma } from '../prisma.ts';
 
 const OIDC_ISSUER = process.env.OIDC_ISSUER || 'https://localhost:8190';
 

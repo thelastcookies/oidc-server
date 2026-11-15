@@ -10,7 +10,7 @@
  * - redirect_uris 白名单防止开放重定向攻击（如果没有白名单，攻击者可构造 redirect_uri=http://evil.com 偷走授权码）
  * - client_secret 使用 bcrypt 哈希存储，即使数据库泄露也无法获取原始密钥
  */
-import prisma from '../prisma.ts';
+import { prisma } from '../prisma.ts';
 import bcrypt from 'bcryptjs';
 import type {
   CreateClientRequest,

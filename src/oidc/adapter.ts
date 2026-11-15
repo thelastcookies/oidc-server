@@ -19,7 +19,7 @@
  * - grantId 索引支持通过 deleteMany 批量撤销同一授权下的所有令牌
  * - consume 机制确保授权码只能使用一次，防止重放攻击
  */
-import prisma from '../prisma.ts';
+import { prisma } from '../prisma.ts';
 import type { AdapterPayload } from 'oidc-provider';
 import type { PayloadRecord } from '../types/api.d.ts';
 
