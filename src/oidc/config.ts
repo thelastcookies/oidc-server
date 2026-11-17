@@ -24,8 +24,9 @@ const configuration = {
    * - profile: 请求用户基本信息（name, username）
    * - email: 请求用户邮箱
    * - offline_access: 请求 refresh_token，实现长期登录（离线访问）
+   * - roles：用户角色/组
    */
-  scopes: ['openid', 'profile', 'email', 'offline_access'],
+  scopes: ['openid', 'profile', 'email', 'offline_access', 'roles'],
 
   /**
    * 每个 scope 对应返回哪些用户属性
@@ -34,8 +35,12 @@ const configuration = {
   claims: {
     // sub：用户唯一标识（Subject），OIDC 规范必须
     openid: ['sub'],
-    profile: ['name'],
+    // profile：name 为显示名（realName ?? username），
+    // username / realName 为自定义 claim，分别提供登录名与登记的真实姓名
+    profile: ['name', 'username', 'realName'],
     email: [],
+    // roles：用户角色/组（自定义 claim，非 OIDC 标准字段）
+    roles: ['roles'],
   },
 
   /**
@@ -81,6 +86,7 @@ const configuration = {
   findAccount: async (_ctx: Context, id: string) => {
     const user = await prisma.user.findUnique({
       where: { id: parseInt(id) },
+      include: { roles: { include: { role: true } } },
     });
     if (!user) return undefined;
 
@@ -90,6 +96,10 @@ const configuration = {
         return {
           sub: id,
           name: user.realName ?? user.username,
+          username: user.username,
+          realName: user.realName,
+          // 用户角色/组：完整列表在这里返回，oidc-provider 会按已授权的 scope 过滤
+          roles: user.roles.map((ur) => ur.role.code),
         };
       },
     };

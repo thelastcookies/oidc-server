@@ -3,7 +3,7 @@
  *
  * 与 api.d.ts（客户端管理/交互流程）按业务拆分：
  * - 管理组：/oidc/admin/users、/oidc/admin/roles，需 admin 角色
- * - 自助组：/oidc/me，仅需用户自身 Access Token
+ * - 自助组：/oidc/password，仅需用户自身 Access Token
  */
 
 /**
@@ -101,10 +101,3 @@ export interface ChangePasswordRequest {
   newPassword: string;
 }
 
-/** 当前用户信息（含角色编码数组） */
-export interface CurrentUserInfo {
-  id: number;
-  username: string;
-  realName: string | null;
-  roles: string[];
-}

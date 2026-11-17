@@ -18,7 +18,7 @@ import Router from '@koa/router';
 import type { Context } from 'koa';
 import * as controller from '../controller/index.ts';
 import * as adminController from '../controller/admin.ts';
-import * as meController from '../controller/me.ts';
+import * as passwordController from '../controller/password.ts';
 import oidcAuthMiddleware from '../middleware/oidc-auth.ts';
 import requireAdmin from '../middleware/admin-auth.ts';
 
@@ -60,7 +60,6 @@ router.put('/admin/roles/:id', oidcAuthMiddleware, requireAdmin, adminController
 router.delete('/admin/roles/:id', oidcAuthMiddleware, requireAdmin, adminController.deleteRole);
 
 // 自助接口：需用户自身的 OIDC Access Token 认证
-router.get('/me', oidcAuthMiddleware, meController.getCurrentUser);
-router.put('/me/password', oidcAuthMiddleware, meController.changePassword);
+router.put('/password', oidcAuthMiddleware, passwordController.changePassword);
 
 export default router;

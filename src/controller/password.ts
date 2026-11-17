@@ -1,18 +1,13 @@
 /**
- * 自助接口控制器（/oidc/me）
+ * 自助接口控制器（/oidc/password）
  *
  * 身份来自 oidcAuthMiddleware 解析的用户 Access Token；
  * 改密页面由各业务系统自主实现，IdP 仅提供接口。
  */
 import type { Context } from 'koa';
-import * as service from '../service/me.ts';
+import * as service from '../service/password.ts';
 import type { ChangePasswordRequest } from '../types/admin.d.ts';
 
-/** 获取当前用户信息（id、username、roles） */
-export const getCurrentUser = async (ctx: Context) => {
-  const { userId } = ctx.state.user as { userId: number };
-  ctx.body = await service.getCurrentUser(userId);
-};
 
 /**
  * 自助修改密码

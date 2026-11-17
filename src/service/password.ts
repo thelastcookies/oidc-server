@@ -1,5 +1,5 @@
 /**
- * 自助接口业务逻辑（/oidc/me）
+ * 自助接口业务逻辑（/oidc/password）
  *
  * 身份认定：请求方携带用户自己的 OIDC Access Token（Bearer），
  * 服务端从令牌记录中解析用户，无需再传 username。
@@ -7,25 +7,6 @@
 import { prisma } from '../prisma.ts';
 import bcrypt from 'bcryptjs';
 import { revokeUserSessions } from './session.ts';
-import type { CurrentUserInfo } from '../types/admin.d.ts';
-
-/** 获取当前用户信息 */
-export const getCurrentUser = async (userId: number): Promise<CurrentUserInfo> => {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    include: { roles: { include: { role: true } } },
-  });
-  if (!user) {
-    throw new Error('用户不存在');
-  }
-
-  return {
-    id: user.id,
-    username: user.username,
-    realName: user.realName,
-    roles: user.roles.map((ur) => ur.role.code),
-  };
-};
 
 /**
  * 自助修改密码
