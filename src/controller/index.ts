@@ -34,7 +34,8 @@ import type { Interaction, InteractionResults } from 'oidc-provider';
 
 /** 获取当前请求的 OIDC Provider 实例 */
 const getProvider = (ctx: Context): Provider => {
-  const provider = ctx.app as Provider;
+  // 外层 Koa 应用上获取挂载的 Provider 实例
+  const provider = (ctx.app as Context['app'] & { provider?: Provider }).provider;
   if (!provider) {
     throw new Error('OIDC Provider 未初始化');
   }

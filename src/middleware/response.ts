@@ -6,8 +6,8 @@ import type { ErrorBody } from '../types/api.d.ts';
  *
  * 处理规则：
  * - 重定向（3xx）：跳过
- * - 自定义路由（/oidc/ 前缀）：成功和失败都包装为统一格式
- * - OIDC 内部路由（/auth、/token、/.well-known 等）：保持 OIDC 封装的原始格式
+ * - OIDC 内部路由（/oidc 为前缀的 /auth、/token、/jwks 等）：保持 OIDC 协议的原始格式
+ * - 其余响应（自定义路由、未知路径 404）：包装为统一格式
  */
 const responseMiddleware = async (ctx: Context, next: Next) => {
   try {
@@ -18,8 +18,9 @@ const responseMiddleware = async (ctx: Context, next: Next) => {
       return;
     }
 
-    // 跳过 OIDC 内部路由（/.well-known、/auth、/token 等）
-    if (!ctx.path.startsWith('/oidc/')) {
+    // 跳过 OIDC 内部路由的响应（保持协议原始格式）：
+    // 内部路由命中后，oidc-provider 的 ensureOIDC 会在 ctx 上定义 oidc 属性，
+    if ('oidc' in ctx) {
       return;
     }
 
