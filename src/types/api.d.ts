@@ -61,16 +61,12 @@ export interface ClientInfo {
   client_id: string;
   client_name: string;
   redirect_uris: string[];
+  post_logout_redirect_uris: string[];
   grant_types: string[];
   response_types: ResponseType[];
+  token_endpoint_auth_method: string;
   createdAt: Date;
   updatedAt: Date;
-}
-
-/** 客户端详情（含完整配置，不含 client_secret） */
-export interface ClientDetail extends ClientInfo {
-  post_logout_redirect_uris: string[];
-  token_endpoint_auth_method: ClientAuthMethod;
 }
 
 /**

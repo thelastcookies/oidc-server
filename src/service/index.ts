@@ -16,7 +16,6 @@ import type {
   CreateClientRequest,
   UpdateClientRequest,
   ClientInfo,
-  ClientDetail,
   UserCredentials,
 } from '../types/api.d.ts';
 import type { ClientMetadata, ResponseType, ClientAuthMethod } from 'oidc-provider';
@@ -76,8 +75,10 @@ export const getClientList = async (): Promise<ClientInfo[]> => {
       client_id: data.client_id!,
       client_name: data.client_name!,
       redirect_uris: data.redirect_uris!,
+      post_logout_redirect_uris: data.post_logout_redirect_uris!,
       grant_types: data.grant_types!,
       response_types: data.response_types!,
+      token_endpoint_auth_method: data.token_endpoint_auth_method!,
       createdAt: c.createdAt,
       updatedAt: c.updatedAt,
     };
@@ -85,7 +86,7 @@ export const getClientList = async (): Promise<ClientInfo[]> => {
 };
 
 /** 获取单个客户端详情 */
-export const getClient = async (clientId: string): Promise<ClientDetail> => {
+export const getClient = async (clientId: string): Promise<ClientInfo> => {
   const client = await prisma.oidcClient.findUnique({ where: { id: `Client:${clientId}` } });
   if (!client) {
     throw new Error('客户端不存在');
