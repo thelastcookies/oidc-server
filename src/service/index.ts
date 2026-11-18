@@ -23,7 +23,7 @@ import type { ClientMetadata, ResponseType, ClientAuthMethod } from 'oidc-provid
 /** 创建客户端时的默认值 */
 const DEFAULT_GRANT_TYPES: string[] = ['authorization_code', 'refresh_token'];
 const DEFAULT_RESPONSE_TYPES: ResponseType[] = ['code'];
-const DEFAULT_AUTH_METHOD: ClientAuthMethod = 'client_secret_post';
+const DEFAULT_AUTH_METHOD: ClientAuthMethod = 'none';
 
 /**
  * 创建 OIDC 客户端
@@ -123,6 +123,7 @@ export const updateClient = async (
   if (updates.post_logout_redirect_uris) updatedData.post_logout_redirect_uris = updates.post_logout_redirect_uris;
   if (updates.grant_types) updatedData.grant_types = updates.grant_types;
   if (updates.response_types) updatedData.response_types = updates.response_types;
+  if (updates.token_endpoint_auth_method) updatedData.token_endpoint_auth_method = updates.token_endpoint_auth_method;
 
   await prisma.oidcClient.update({
     where: { id: `Client:${clientId}` },

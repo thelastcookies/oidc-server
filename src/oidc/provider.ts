@@ -13,6 +13,7 @@ import PrismaAdapter from './adapter.ts';
 import configuration, { OIDC_ISSUER } from './config.ts';
 import { prisma } from '../prisma.ts';
 import logger from '../utils/log.ts';
+import bcrypt from 'bcryptjs';
 
 /**
  * 生成 RSA 密钥对并导出为 JWK 格式
@@ -123,14 +124,6 @@ const initProvider = async () => {
       ctx.status = error.status || 500;
       ctx.body = { error: error.error || 'server_error', message: error.message };
     }
-  });
-
-  // 监听 server_error 事件：oidc-provider 内部会吞掉未预期异常（生产环境连堆栈都不打印，
-  // 只响应 "oops! something went wrong"），且 JSON 请求不会走 renderError，
-  // provider.use 挂载在内部错误处理器之后也无法捕获——事件是拿到完整错误的唯一钩子
-  provider.on('server_error', (_ctx: Context, err: Error) => {
-    console.error('OIDC server_error:', err);
-    logger.error('OIDC server_error:', err);
   });
 
   // 种子默认 Client（首次启动时）

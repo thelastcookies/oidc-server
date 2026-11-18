@@ -43,7 +43,7 @@ export interface CreateClientRequest {
   grant_types?: string[];
   // 允许的响应类型（默认 code，即授权码模式）
   response_types?: ResponseType[];
-  // 令牌端点认证方式（默认 client_secret_post）
+  // 令牌端点认证方式（默认 none）
   token_endpoint_auth_method?: ClientAuthMethod;
 }
 
@@ -54,6 +54,7 @@ export interface UpdateClientRequest {
   post_logout_redirect_uris?: string[];
   grant_types?: string[];
   response_types?: ResponseType[];
+  token_endpoint_auth_method?: ClientAuthMethod;
 }
 
 /** 客户端列表项（不含敏感信息） */
