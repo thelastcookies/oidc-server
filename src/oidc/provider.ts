@@ -12,8 +12,6 @@ import type { Context, Next } from 'koa';
 import PrismaAdapter from './adapter.ts';
 import configuration, { OIDC_ISSUER } from './config.ts';
 import { prisma } from '../prisma.ts';
-import logger from '../utils/log.ts';
-import bcrypt from 'bcryptjs';
 
 /**
  * 生成 RSA 密钥对并导出为 JWK 格式
@@ -85,7 +83,6 @@ const seedDefaultClient = async () => {
     post_logout_redirect_uris: [process.env.POST_LOGOUT_REDIRECT_URI || 'https://localhost:8205'],
     grant_types: ['authorization_code', 'refresh_token'],
     response_types: ['code'],
-    // Public Client：SPA 无法安全存储 client_secret，使用 PKCE 替代
     token_endpoint_auth_method: 'none',
   };
 

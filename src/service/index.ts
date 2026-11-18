@@ -12,13 +12,8 @@
  */
 import { prisma } from '../prisma.ts';
 import bcrypt from 'bcryptjs';
-import type {
-  CreateClientRequest,
-  UpdateClientRequest,
-  ClientInfo,
-  UserCredentials,
-} from '../types/api.d.ts';
-import type { ClientMetadata, ResponseType, ClientAuthMethod } from 'oidc-provider';
+import type { ClientInfo, CreateClientRequest, UpdateClientRequest, UserCredentials } from '../types/api.d.ts';
+import type { ClientAuthMethod, ClientMetadata, ResponseType } from 'oidc-provider';
 
 /** 创建客户端时的默认值 */
 const DEFAULT_GRANT_TYPES: string[] = ['authorization_code', 'refresh_token'];

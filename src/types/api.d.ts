@@ -4,7 +4,7 @@
  * 所有自定义接口的响应都遵循此格式，由 responseMiddleware 自动包装。
  * OIDC Provider 路由（/auth、/token 等）不使用此格式。
  */
-import type { ResponseType, ClientAuthMethod } from 'oidc-provider';
+import type { ClientAuthMethod, ResponseType } from 'oidc-provider';
 
 /** 成功响应 */
 export interface ApiSuccessResponse<T = unknown> {
