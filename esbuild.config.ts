@@ -6,6 +6,9 @@ build({
   platform: 'node',
   format: 'esm',
   minify: true,
+  // 保留函数/类的原始 name
+  // oidc-provider 的 dynamic token 依赖原始类名
+  keepNames: true,
   outdir: './dist',
   target: 'es2020',
   loader: { '.wasm': 'file' },
